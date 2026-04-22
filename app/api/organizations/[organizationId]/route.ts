@@ -3,13 +3,15 @@ import { NextResponse } from "next/server";
 
 export async function GET(
   req: Request,
-  { params }: { params: { organizationId: string } }
+  { params }: { params: Promise<{ organizationId: string }> }
 ) {
   try {
-    // organizationId is now Profile.id
+    
+    const { organizationId } = await params;
+
     const profile = await db.profile.findUnique({
       where: {
-        id: params.organizationId,
+        id: organizationId,
       },
       include: {
         user: {

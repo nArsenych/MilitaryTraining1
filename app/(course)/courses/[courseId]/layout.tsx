@@ -3,16 +3,17 @@ import { db } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 
-const CourseDetailsLayout = async ({children, params,}: {children: React.ReactNode; params: { courseId: string };}) => {
+const CourseDetailsLayout = async ({children, params,}: {children: React.ReactNode; params: Promise<{ courseId: string }>;}) => {
   const session = await getSession();
 
   if (!session) {
     return redirect("/sign-in");
   }
 
+  const { courseId } = await params;
   const course = await db.course.findUnique({
     where: {
-      id: params.courseId,
+      id: courseId,
     },
   });
 

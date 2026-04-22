@@ -1,8 +1,9 @@
 import CourseCard from "@/components/courses/CourseCard";
 import { db } from "@/lib/db"
 
-const SearchPage = async ({ searchParams }: { searchParams: { query: string }}) => {
-  const queryText = searchParams.query || ''
+const SearchPage = async ({ searchParams }: { searchParams: Promise<{ query: string }>}) => {
+ const { query } = await searchParams;  
+  const queryText = query || ''
   const courses = await db.course.findMany({
     where: {
       isPublished: true,

@@ -4,11 +4,11 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const PATCH = async (
   req: NextRequest,
-  { params }: { params: { courseId: string } }
+  { params }: { params: Promise<{ courseId: string }> }
 ) => {
   try {
     const session = await getSession();
-    const { courseId } = params;
+    const { courseId } = await params;
     const values = await req.json();
 
     if (!session) {
@@ -37,11 +37,11 @@ export const PATCH = async (
 
 export const DELETE = async (
   req: NextRequest,
-  { params }: { params: { courseId: string } }
+  { params }: { params: Promise<{ courseId: string }> }
 ) => {
   try {
     const session = await getSession();
-    const { courseId } = params;
+    const { courseId } = await params;
 
     if (!session) {
       return new NextResponse("Unauthorized", { status: 401 });

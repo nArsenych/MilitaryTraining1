@@ -5,10 +5,11 @@ import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 
 interface PageProps {
-  params: { courseId: string };
+  params: Promise<{ courseId: string }>;
 }
 
 const CourseBasics = async ({ params }: PageProps) => {
+  const { courseId } = await params; 
   const session = await getSession();
 
   if (!session) {
@@ -26,7 +27,7 @@ const CourseBasics = async ({ params }: PageProps) => {
   const [course, categories, level, city] = await Promise.all([
     db.course.findUnique({
       where: {
-        id: params.courseId,
+        id: courseId,
         organizationId: profile.id,
       },
     }),

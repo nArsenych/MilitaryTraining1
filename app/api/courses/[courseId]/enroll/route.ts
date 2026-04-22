@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 
 export async function POST(
   req: Request,
-  { params }: { params: { courseId: string } }
+  { params }: { params: Promise<{ courseId: string }> }
 ) {
   try {
     const session = await getSession();
@@ -27,9 +27,11 @@ export async function POST(
       return new NextResponse("Organizations cannot enroll in courses", { status: 403 });
     }
 
+    const { courseId } = await params;
+
     const course = await db.course.findUnique({
       where: {
-        id: params.courseId,
+        id: courseId,
       },
       select: {
         id: true,
@@ -45,7 +47,7 @@ export async function POST(
       where: {
         customerId_courseId: {
           customerId: userProfile.id,
-          courseId: params.courseId,
+          courseId: courseId,
         },
       },
     });

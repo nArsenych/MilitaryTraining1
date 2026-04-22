@@ -6,7 +6,7 @@ import { db } from "@/lib/db";
 const CoursesByCity = async ({
   params,
 }: {
-  params: { cityId: string };
+  params: Promise<{ cityId: string }>;
 }) => {
   const cities = await db.city.findMany({
     orderBy: {
@@ -14,7 +14,8 @@ const CoursesByCity = async ({
     },
   });
 
-  const courses = await getCoursesByCity(params.cityId);
+  const { cityId } = await params; 
+  const courses = await getCoursesByCity(cityId);
 
   return (
     <div className="md:px-10 xl:px-16 pb-16 bg-[#4E4C4B] min-h-screen pt-5">

@@ -4,11 +4,11 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const PATCH = async (
   req: NextRequest,
-  { params }: { params: { profileId: string } }
+  { params }: { params: Promise <{ profileId: string }> }
 ) => {
   try {
     const session = await getSession();
-    const { profileId } = params;
+    const { profileId } = await params;
     const values = await req.json();
 
     if (!session) {

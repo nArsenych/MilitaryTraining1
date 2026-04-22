@@ -3,7 +3,7 @@ import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import ReadText from "@/components/custom/ReadTwxt";
 
-const CourseOverview = async ({  }: { params: { profileId: string } }) => {
+const CourseOverview = async ({  }: { params: Promise<{ profileId: string }> }) => {
   const session = await getSession();
     
   if (!session) {
