@@ -2,6 +2,8 @@ import CalendarCourses from "@/components/courses/CalendarCourse";
 import ThreeIcon from "@/components/layout/ThreeIcon";
 import { db } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+
 async function getOrganizationName(organizationId: string) {
   const profile = await db.profile.findUnique({
     where: {

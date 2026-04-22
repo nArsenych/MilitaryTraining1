@@ -7,6 +7,8 @@ import { db } from "@/lib/db";
 import { DataTable } from "@/components/custom/DataTable";
 import { columns } from "@/components/courses/Columns";
 
+export const dynamic = "force-dynamic";
+
 const CoursesPage = async () => {
   const session = await getSession();
 

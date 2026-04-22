@@ -3,6 +3,8 @@ import CourseCard from "@/components/courses/CourseCard";
 import getCoursesByOrganization from "@/app/actions/getCoursesOrganizations";
 import Organization from "@/components/custom/Organizations";
   
+export const dynamic = "force-dynamic";
+
   const CoursesByOrg = async ({
     params,
   }: {

@@ -3,6 +3,8 @@ import CourseCard from "@/components/courses/CourseCard";
 import Cities from "@/components/custom/Cities";
 import { db } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+
 const CoursesByCity = async ({
   params,
 }: {

@@ -4,6 +4,8 @@ import { db } from "@/lib/db";
 import ReadText from "@/components/custom/ReadTwxt";
 import Link from "next/link";
 
+export const dynamic = "force-dynamic";
+
 const CourseOverview = async ({ params }: { params: Promise<{ courseId: string }> }) => {
   const { courseId } = await params;
   const course = await db.course.findUnique({

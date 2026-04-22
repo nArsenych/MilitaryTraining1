@@ -8,6 +8,8 @@ interface PageProps {
   params: Promise<{ courseId: string }>;
 }
 
+export const dynamic = "force-dynamic";
+
 const CourseBasics = async ({ params }: PageProps) => {
   const { courseId } = await params; 
   const session = await getSession();

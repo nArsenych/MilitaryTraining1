@@ -3,6 +3,8 @@ import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import ReadText from "@/components/custom/ReadTwxt";
 
+export const dynamic = "force-dynamic";
+
 const CourseOverview = async ({  }: { params: Promise<{ profileId: string }> }) => {
   const session = await getSession();
     

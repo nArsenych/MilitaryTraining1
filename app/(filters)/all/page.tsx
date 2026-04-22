@@ -1,6 +1,8 @@
 import { db } from "@/lib/db";
 import CourseCard from "@/components/courses/CourseCard";
 
+export const dynamic = "force-dynamic";
+
 export default async function CoursesPage() {
   const courses = await db.course.findMany({
     where: {

@@ -1,6 +1,8 @@
 import CourseCard from "@/components/courses/CourseCard";
 import { db } from "@/lib/db"
 
+export const dynamic = "force-dynamic";
+
 const SearchPage = async ({ searchParams }: { searchParams: Promise<{ query: string }>}) => {
  const { query } = await searchParams;  
   const queryText = query || ''

@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { sendConfirmationEmail } from "@/app/actions/email";
 import { revalidatePath } from "next/cache";
 
+export const dynamic = "force-dynamic";
+
 async function confirmEnrollment(formData: FormData): Promise<void> {
   'use server';
 
