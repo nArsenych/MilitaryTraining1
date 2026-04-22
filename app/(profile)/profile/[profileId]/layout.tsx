@@ -2,7 +2,7 @@ import { db } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 
-const ProfileDetailsLayout = async ({children,}: {children: React.ReactNode; params: Promise<{ Id: string }>;}) => {
+const ProfileDetailsLayout = async ({children,}: {children: React.ReactNode; params: Promise<{ profileId: string }>;}) => {
   const session = await getSession();
   
   if (!session) {
