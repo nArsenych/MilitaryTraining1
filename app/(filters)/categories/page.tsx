@@ -3,6 +3,8 @@ import getCoursesByCategory from "../../actions/getCoursesCategories";
 import Categories from "@/components/custom/Categories";
 import CourseCard from "@/components/courses/CourseCard";
 
+export const dynamic = "force-dynamic";
+
 export default async function Categoriess() {
   const categories = await db.category.findMany({
     orderBy: {

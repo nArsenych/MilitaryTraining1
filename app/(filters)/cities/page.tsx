@@ -3,6 +3,7 @@ import CourseCard from "@/components/courses/CourseCard";
 import getCoursesByCity from "@/app/actions/getCoursesCities";
 import Cities from "@/components/custom/Cities";
 
+export const dynamic = "force-dynamic";
 
 export default async function Citiess() {
   const cities = await db.city.findMany({

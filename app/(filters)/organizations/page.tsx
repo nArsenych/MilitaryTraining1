@@ -3,6 +3,8 @@ import CourseCard from "@/components/courses/CourseCard";
 import Organizations from "@/components/custom/Organizations"; 
 import getCoursesByOrganization from "../../actions/getCoursesOrganizations"; 
 
+export const dynamic = "force-dynamic";
+
 export default async function OrganizationsPage() {
   const allCourses = await db.course.findMany({
     where: {
