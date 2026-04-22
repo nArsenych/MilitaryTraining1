@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import ProfileSidebar from "@/components/layout/ProfileSideBar";
 import { db } from "@/lib/db";
 
-const Instructorlayout = async ({children,}: {children: React.ReactNode; params: { profileId: string };}) => {
+const Instructorlayout = async ({children,}: {children: React.ReactNode; params: Promise<{ profileId: string }>;}) => {
     const session = await getSession();
   
     if (!session) {
