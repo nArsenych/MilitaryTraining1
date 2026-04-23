@@ -18,6 +18,7 @@ const publicRoutes = [
 ];
 
 function isPublicRoute(pathname: string): boolean {
+  if (pathname.startsWith("/courses")) return true;
   if (publicRoutes.includes(pathname)) return true;
   if (pathname.startsWith("/categories")) return true;
   if (pathname.startsWith("/cities")) return true;

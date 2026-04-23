@@ -53,6 +53,14 @@ const ProfileSidebar = ({ profile }: CourseSideBarProps) => {
             >
                 Редагування профілю
             </Link>
+             {!profile.isOrganization && (
+                <Link
+                    href="/my-courses"
+                    className={`p-3 rounded-lg hover:bg-[#ebac66] mt-4`}
+                >
+                    Мої курси
+                </Link>
+            )}
         </div>
     );
 };

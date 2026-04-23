@@ -41,7 +41,7 @@ const SelectAccountType = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+    <div className="flex flex-col items-center justify-center min-h-screen gap-4 bg-[#4E4C4B]">
       <h1 className="text-2xl font-bold mb-4">Оберіть тип облікового запису</h1>
       <div className="flex gap-4">
         <Button

@@ -59,6 +59,14 @@ const Topbar = () => {
                                         Ваші курси
                                     </Link>
                                 )}
+                                    {isSignedIn && !isOrganization && !profileLoading && (
+                                    <Link
+                                        href="/my-courses"
+                                        className="text-sm font-medium text-[#ebac66] hover:text-[#FDAB04]"
+                                    >
+                                        Мої курси
+                                    </Link>
+                                )}
                             </div>
 
                             {isSignedIn ? (
