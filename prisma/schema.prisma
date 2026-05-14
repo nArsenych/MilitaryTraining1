@@ -19,6 +19,22 @@ model User {
   profile      Profile?
 }
 
+model Review {
+  id        String   @id @default(uuid())
+  rating    Int
+  comment   String?  @db.Text
+  courseId   String
+  profileId String
+  createdAt DateTime @default(now())
+
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, courseId])
+  @@index([courseId])
+  @@index([profileId])
+}
+
 model Course {
   id             String    @id @default(uuid())
   organizationId String
@@ -36,6 +52,11 @@ model Course {
   levelId        String?
   purchases      Purchase[]
   price          Float?    @default(0) @db.Float
+  reviews    Review[]
+  
+  parentCourseId String?
+  parentCourse   Course?   @relation("CourseHistory", fields: [parentCourseId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  repeatedCourses Course[] @relation("CourseHistory")
 
   category       Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   city           City?     @relation(fields: [cityId], references: [id], onDelete: Cascade)
@@ -46,6 +67,7 @@ model Course {
   @@index([categoryId])
   @@index([cityId])
   @@index([levelId])
+  @@index([parentCourseId])
 }
 
 model Profile {
@@ -60,6 +82,10 @@ model Profile {
   telegram          String?    @db.Text
   facebook          String?    @db.Text
   isMilitary        Boolean?   @default(false)
+  edrpou            String?    @db.Text
+  address           String?    @db.Text
+  contact_email     String?    @db.Text
+  reviews    Review[]
 
   user              User       @relation(fields: [user_id], references: [id], onDelete: Cascade)
   createdCourses    Course[]   @relation("OrganizationCourses")

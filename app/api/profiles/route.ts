@@ -10,7 +10,19 @@ export const POST = async (req: NextRequest) => {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const { full_name, phone_number } = await req.json();
+    const {
+      full_name,
+      phone_number,
+      contact_email,
+      instagram,
+      telegram,
+      facebook,
+      description,
+      edrpou,
+      address,
+      age,
+      isMilitary,
+    } = await req.json();
 
     const profile = await db.profile.upsert({
       where: {
@@ -19,12 +31,30 @@ export const POST = async (req: NextRequest) => {
       create: {
         full_name,
         phone_number,
-        user_id: session.userId
+        contact_email,
+        instagram,
+        telegram,
+        facebook,
+        description,
+        edrpou,
+        address,
+        age,
+        isMilitary,
+        user_id: session.userId,
       },
       update: {
         full_name,
         phone_number,
-      }
+        contact_email,
+        instagram,
+        telegram,
+        facebook,
+        description,
+        edrpou,
+        address,
+        age,
+        isMilitary,
+      },
     });
 
     return NextResponse.json(profile, { status: 200 });

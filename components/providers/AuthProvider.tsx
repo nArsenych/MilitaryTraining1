@@ -50,8 +50,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await fetch("/api/auth/logout", { method: "POST" });
     setUser(null);
     window.location.href = "/";
+    setTimeout(() => window.scrollTo(0, 0), 0);
   }, []);
-
+  
   useEffect(() => {
     refreshAuth();
   }, [refreshAuth]);

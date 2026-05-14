@@ -1,17 +1,17 @@
 import { db } from "@/lib/db";
-import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 
-const ProfileDetailsLayout = async ({children,}: {children: React.ReactNode; params: Promise<{ profileId: string }>;}) => {
-  const session = await getSession();
-  
-  if (!session) {
-    return redirect("/sign-in");
-  }
+const ProfileDetailsLayout = async ({
+  children,
+  params,
+}: {
+  children: React.ReactNode;
+  params: Promise<{ profileId: string }>;
+}) => {
+  const { profileId } = await params;
+
   const profile = await db.profile.findUnique({
-    where: {
-      user_id: session.userId,
-    },
+    where: { id: profileId },
   });
 
   if (!profile) {

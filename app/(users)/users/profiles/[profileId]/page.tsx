@@ -10,7 +10,8 @@ interface PageProps {
   params: { profileId: string };
 }
 
-const ProfileBasics = async ({ params }: PageProps) => {
+const ProfileBasics = async ({ params }: { params: Promise<{ profileId: string }> }) => {
+  const { profileId } = await params;
   const session = await getSession();
 
   if (!session) {
@@ -20,7 +21,7 @@ const ProfileBasics = async ({ params }: PageProps) => {
   const [profile] = await Promise.all([
     db.profile.findUnique({
       where: {
-        id: params.profileId,
+        id: profileId,
         user_id: session.userId,
       },
     })

@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import ToasterProvider from "@/components/providers/ToasterProvider";
 import { AuthProvider } from "@/components/providers/AuthProvider";
+import ScrollToTop from "@/components/custom/ScrollToTop";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -31,6 +32,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <AuthProvider>
+          <ScrollToTop />
           <ToasterProvider />
           {children}
         </AuthProvider>

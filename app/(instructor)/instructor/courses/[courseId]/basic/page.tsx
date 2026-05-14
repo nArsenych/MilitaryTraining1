@@ -3,6 +3,7 @@ import AlertBanner from "@/components/custom/AlertBaner";
 import { db } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import CourseActions from "@/components/courses/CourseActions";
 
 interface PageProps {
   params: Promise<{ courseId: string }>;
@@ -83,6 +84,9 @@ const CourseBasics = async ({ params }: PageProps) => {
         }))}
         isCompleted={isCompleted} 
       />
+      <div className="mt-6 border-t pt-4">
+        <CourseActions courseId={courseId} courseTitle={course.title} />
+      </div>
     </div>
   );
 };
