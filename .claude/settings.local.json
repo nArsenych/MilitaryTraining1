@@ -14,7 +14,8 @@
       "Bash(Select-Object -ExpandProperty FullName)",
       "Bash(grep -rn \"import.*\\\\bProfile\\\\b.*from.*@prisma/client\" --include=\"*.ts\" --include=\"*.tsx\")",
       "Bash(grep -rn \"db\\\\.profile\\\\b\" --include=\"*.ts\" --include=\"*.tsx\")",
-      "Bash(grep -rn \"isOrganization.*true\\\\|isOrganization.*false\\\\|isOrganization.*Boolean\" --include=\"*.prisma\")"
+      "Bash(grep -rn \"isOrganization.*true\\\\|isOrganization.*false\\\\|isOrganization.*Boolean\" --include=\"*.prisma\")",
+      "Bash(Remove-Item *)"
     ]
   }
 }
