@@ -20,7 +20,6 @@ const ReviewForm = ({ courseId }: { courseId: string }) => {
       toast.error("Оберіть оцінку");
       return;
     }
-
     setIsLoading(true);
     try {
       await axios.post(`/api/courses/${courseId}/reviews`, {
@@ -39,12 +38,12 @@ const ReviewForm = ({ courseId }: { courseId: string }) => {
   };
 
   return (
-    <div className="bg-[#F1CDA6] rounded-lg p-4">
-      <h3 className="text-sm font-semibold mb-2">Залишити відгук</h3>
-      <div className="flex items-center gap-3 mb-3">
-        <StarRating rating={rating} onRate={setRating} size={24} />
-        <span className="text-sm text-gray-600">
-          {rating > 0 ? `${rating}/5` : "Оберіть оцінку"}
+    <div className="rounded-xl bg-[#3D3A36] border border-white/8 px-4 py-4 flex flex-col gap-3">
+      <p className="text-xs font-semibold text-white/40 uppercase tracking-wider">Ваш відгук</p>
+      <div className="flex items-center gap-3">
+        <StarRating rating={rating} onRate={setRating} size={22} />
+        <span className="text-sm text-white/40">
+          {rating > 0 ? `${rating} / 5` : "Оберіть оцінку"}
         </span>
       </div>
       <Textarea
@@ -52,10 +51,15 @@ const ReviewForm = ({ courseId }: { courseId: string }) => {
         onChange={(e) => setComment(e.target.value)}
         placeholder="Коментар (необов'язково)"
         rows={3}
-        className="mb-3"
+        className="bg-white/5 border-white/10 text-white placeholder:text-white/25 focus:border-[#FDAB04]/50 resize-none"
       />
-      <Button onClick={handleSubmit} disabled={isLoading || rating === 0} size="sm">
-        {isLoading && <Loader2 className="h-4 w-4 animate-spin mr-1" />}
+      <Button
+        onClick={handleSubmit}
+        disabled={isLoading || rating === 0}
+        size="sm"
+        className="bg-[#FDAB04] hover:bg-[#ebac66] text-black font-semibold w-fit"
+      >
+        {isLoading && <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />}
         Надіслати відгук
       </Button>
     </div>

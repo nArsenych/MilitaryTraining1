@@ -4,23 +4,16 @@ import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { db } from "@/lib/db";
 import CourseActions from "@/components/courses/CourseActions";
+import { BookOpen, Users, Calendar, History, CheckCircle2, Clock } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
 const CoursesPage = async () => {
   const session = await getSession();
+  if (!session) return redirect("/sign-in");
 
-  if (!session) {
-    return redirect("/sign-in");
-  }
-
-  const profile = await db.profile.findUnique({
-    where: { user_id: session.userId },
-  });
-
-  if (!profile) {
-    return redirect("/select-type");
-  }
+  const profile = await db.profile.findUnique({ where: { user_id: session.userId } });
+  if (!profile) return redirect("/select-type");
 
   const courses = await db.course.findMany({
     where: { organizationId: profile.id },
@@ -28,99 +21,101 @@ const CoursesPage = async () => {
       category: true,
       city: true,
       level: true,
-      parentCourse: { select: { id: true, title: true, startDate: true, endDate: true } },
-      repeatedCourses: {
-        select: { id: true, startDate: true, endDate: true, isPublished: true },
-        orderBy: { startDate: "desc" },
-      },
+      runs: { orderBy: { startDate: "desc" } },
       _count: { select: { purchases: true } },
     },
     orderBy: { createdAt: "desc" },
   });
 
+  const fmt = (d: Date | null) =>
+    d ? new Date(d).toLocaleDateString("uk-UA", { day: "2-digit", month: "2-digit", year: "numeric" }) : "—";
+
   return (
-    <div className="px-6 py-4">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-[#ebac66]">Ваші курси</h1>
+    <div className="px-6 py-8">
+      <div className="flex items-center justify-between mb-8">
+        <h1 className="text-2xl font-bold text-white">Ваші курси</h1>
         <Link href="/instructor/create-course">
-          <Button>Створити курс</Button>
+          <Button className="bg-[#FDAB04] hover:bg-[#ebac66] text-black font-semibold">
+            Створити курс
+          </Button>
         </Link>
       </div>
 
       {courses.length === 0 ? (
-        <p className="text-gray-400 text-center py-12">У вас ще немає курсів.</p>
+        <p className="text-white/40 text-center py-16">У вас ще немає курсів.</p>
       ) : (
-        <div className="grid gap-4">
+        <div className="flex flex-col gap-5">
           {courses.map((course) => (
-            <div key={course.id} className="border rounded-lg p-4 bg-[#F1CDA6]">
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <Link
-                    href={`/instructor/courses/${course.id}/basic`}
-                    className="text-lg font-semibold hover:text-[#ebac66] transition"
-                  >
-                    {course.title}
-                  </Link>
+            <div key={course.id} className="rounded-2xl bg-[#3D3A36] border border-white/10 overflow-hidden">
 
-                  <div className="flex gap-3 mt-1 text-sm text-gray-600">
-                    {course.category && <span>{course.category.name}</span>}
-                    {course.city && <span>{course.city.name}</span>}
-                    {course.level && <span>{course.level.name}</span>}
+              {/* header */}
+              <div className="flex items-start justify-between px-5 py-4 border-b border-white/10">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    <Link
+                      href={`/instructor/courses/${course.id}/basic`}
+                      className="font-semibold text-white hover:text-[#FDAB04] transition-colors"
+                    >
+                      {course.title}
+                    </Link>
+                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
+                      course.isPublished
+                        ? "bg-green-500/15 text-green-400 border-green-500/20"
+                        : "bg-white/8 text-white/40 border-white/10"
+                    }`}>
+                      {course.isPublished ? "Опубліковано" : "Чернетка"}
+                    </span>
                   </div>
-
-                  <div className="flex gap-4 mt-2 text-sm">
-                    {course.startDate && (
-                      <span>Початок: {course.startDate.toLocaleDateString("uk-UA")}</span>
-                    )}
-                    {course.endDate && (
-                      <span>Кінець: {course.endDate.toLocaleDateString("uk-UA")}</span>
-                    )}
-                    <span>Записаних: {course._count.purchases}</span>
-                  </div>
-
-                  {/* Історія повторів */}
-                  {course.repeatedCourses.length > 0 && (
-                    <div className="mt-2">
-                      <p className="text-xs font-semibold text-gray-600">Повтори цього курсу:</p>
-                      <div className="flex flex-wrap gap-2 mt-1">
-                        {course.repeatedCourses.map((repeat) => (
-                          <Link
-                            key={repeat.id}
-                            href={`/instructor/courses/${repeat.id}/basic`}
-                            className="text-xs bg-white px-2 py-1 rounded border hover:bg-gray-50"
-                          >
-                            {repeat.startDate?.toLocaleDateString("uk-UA")} — {repeat.endDate?.toLocaleDateString("uk-UA")}
-                            {repeat.isPublished ? " ✓" : " (чернетка)"}
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Якщо це повтор — показати оригінал */}
-                  {course.parentCourse && (
-                    <p className="text-xs text-gray-500 mt-2">
-                      Повтор курсу:{" "}
-                      <Link
-                        href={`/instructor/courses/${course.parentCourse.id}/basic`}
-                        className="underline"
-                      >
-                        {course.parentCourse.startDate?.toLocaleDateString("uk-UA")} — {course.parentCourse.endDate?.toLocaleDateString("uk-UA")}
-                      </Link>
-                    </p>
-                  )}
+                  <p className="text-xs text-white/40 mt-1">
+                    {course.category?.name}
+                    {course.city && ` · ${course.city.name}`}
+                    {course.level && ` · ${course.level.name}`}
+                  </p>
                 </div>
-
-                <div className="flex flex-col items-end gap-2 ml-4">
-                  <span className={`text-xs px-2 py-1 rounded ${course.isPublished ? "bg-green-100 text-green-700" : "bg-gray-200 text-gray-600"}`}>
-                    {course.isPublished ? "Опубліковано" : "Чернетка"}
-                  </span>
-                  {course.price !== null && (
-                    <span className="text-sm font-medium">{course.price} грн</span>
-                  )}
-                  <CourseActions courseId={course.id} courseTitle={course.title} />
+                <div className="shrink-0 ml-4">
+                  <CourseActions courseId={course.id} courseTitle={course.title} courseEndDate={course.endDate} />
                 </div>
               </div>
+
+              {/* stats row */}
+              <div className="flex items-center gap-6 px-5 py-3 border-b border-white/8">
+                <span className="flex items-center gap-1.5 text-xs text-white/50">
+                  <Users size={12} className="text-[#FDAB04]" />
+                  {course._count.purchases} записаних
+                </span>
+                <span className="flex items-center gap-1.5 text-xs text-white/50">
+                  <Calendar size={12} className="text-[#FDAB04]" />
+                  {fmt(course.startDate)} — {fmt(course.endDate)}
+                </span>
+                {course.price !== null && (
+                  <span className="flex items-center gap-1.5 text-xs text-white/50">
+                    <BookOpen size={12} className="text-[#FDAB04]" />
+                    {course.price > 0 ? `${course.price} грн` : "Безкоштовно"}
+                  </span>
+                )}
+              </div>
+
+              {/* run history */}
+              {course.runs.length > 0 && (
+                <div className="px-5 py-3">
+                  <p className="flex items-center gap-1.5 text-[10px] font-semibold text-white/30 uppercase tracking-widest mb-2">
+                    <History size={11} />
+                    Попередні проведення
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {course.runs.map((run) => (
+                      <span
+                        key={run.id}
+                        className="inline-flex items-center gap-1.5 text-xs text-white/45 bg-white/5 border border-white/10 px-2.5 py-1 rounded-lg"
+                      >
+                        <CheckCircle2 size={10} className="text-green-400/70 shrink-0" />
+                        {fmt(run.startDate)} — {fmt(run.endDate)}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
             </div>
           ))}
         </div>

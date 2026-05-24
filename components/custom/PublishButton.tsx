@@ -14,50 +14,36 @@ interface PublishButtonProps {
   page: string;
 }
 
-const PublishButton = ({
-  disabled,
-  courseId,
-  isPublished,
-  page,
-}: PublishButtonProps) => {
+const PublishButton = ({ disabled, courseId, isPublished, page }: PublishButtonProps) => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
   const onClick = async () => {
     const url = `/api/courses/${courseId}`;
-
     try {
       setIsLoading(true);
-      
       if (isPublished) {
         await axios.post(`${url}/unpublish`);
+        toast.success(`${page} знято з публікації`);
       } else {
         await axios.post(`${url}/publish`);
+        toast.success(`${page} опубліковано`);
       }
-
-      toast.success(`${page} ${isPublished ? "unpublished" : "published"}`);
       router.refresh();
     } catch (error) {
-      toast.error("Something went wrong!");
-      console.log(
-        `Failed to ${isPublished ? "unpublish" : "publish"} ${page}:`,
-        error
-      );
+      toast.error("Щось пішло не так!");
+      console.log(`Failed to ${isPublished ? "unpublish" : "publish"} ${page}:`, error);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <Button
-      variant="outline"
-      disabled={disabled || isLoading}
-      onClick={onClick}
-    >
+    <Button variant="outline" disabled={disabled || isLoading} onClick={onClick}>
       {isLoading ? (
         <Loader2 className="h-4 w-4 animate-spin" />
       ) : (
-        isPublished ? "Unpublish" : "Publish"
+        isPublished ? "Зняти з публікації" : "Опублікувати"
       )}
     </Button>
   );

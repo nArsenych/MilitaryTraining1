@@ -3,8 +3,9 @@ import { db } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import ReadText from "@/components/custom/ReadTwxt";
 import Link from "next/link";
-import ReviewForm from "@/components/courses/ReviewForm";
-import ReviewsList from "@/components/courses/ReviewsList";
+import Image from "next/image";
+import CourseDetailTabs from "@/components/courses/CourseDetailTabs";
+import { MapPin, Calendar, Users, Tag, Banknote, CheckCircle, Clock } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +19,7 @@ const CourseOverview = async ({ params }: { params: Promise<{ courseId: string }
       organization: {
         include: { user: { select: { name: true, email: true } } },
       },
+      runs: { orderBy: { startDate: "desc" } },
     },
   });
 
@@ -29,8 +31,9 @@ const CourseOverview = async ({ params }: { params: Promise<{ courseId: string }
   if (course.levelId) level = await db.level.findUnique({ where: { id: course.levelId } });
   let city;
   if (course.cityId) city = await db.city.findUnique({ where: { id: course.cityId } });
+  let category;
+  if (course.categoryId) category = await db.category.findUnique({ where: { id: course.categoryId } });
 
-  // Відгуки
   const reviews = await db.review.findMany({
     where: { courseId },
     include: {
@@ -44,34 +47,18 @@ const CourseOverview = async ({ params }: { params: Promise<{ courseId: string }
       ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
       : 0;
 
-  // Перевірка: чи може поточний користувач залишити відгук
   let canReview = false;
-
   if (session) {
-    const currentProfile = await db.profile.findUnique({
-      where: { user_id: session.userId },
-    });
-
+    const currentProfile = await db.profile.findUnique({ where: { user_id: session.userId } });
     if (currentProfile) {
       const confirmedPurchase = await db.purchase.findFirst({
-        where: {
-          customerId: currentProfile.id,
-          courseId,
-          confirmed: true,
-        },
+        where: { customerId: currentProfile.id, courseId, confirmed: true },
       });
-
       if (confirmedPurchase) {
         const alreadyReviewed = await db.review.findUnique({
-          where: {
-            profileId_courseId: {
-              profileId: currentProfile.id,
-              courseId,
-            },
-          },
+          where: { profileId_courseId: { profileId: currentProfile.id, courseId } },
         });
-
-canReview = !alreadyReviewed;
+        canReview = !alreadyReviewed;
       }
     }
   }
@@ -85,84 +72,103 @@ canReview = !alreadyReviewed;
     return !!review;
   })();
 
+  const fmt = (d: Date | null) =>
+    d ? new Date(d).toLocaleDateString("uk-UA", { day: "2-digit", month: "long", year: "numeric" }) : null;
+
+  const durationDays =
+    course.startDate && course.endDate
+      ? Math.ceil((new Date(course.endDate).getTime() - new Date(course.startDate).getTime()) / 86400000)
+      : null;
+
+  const meta = [
+    { icon: Banknote, label: "Ціна",     value: course.price ? `${course.price} грн` : "Безкоштовно" },
+    { icon: Tag,      label: "Рівень",   value: level?.name },
+    { icon: MapPin,   label: "Місто",    value: city?.name },
+    { icon: Users,    label: "Вік",      value: course.startAge ? `від ${course.startAge}${course.endAge ? ` до ${course.endAge}` : ""} р.` : undefined },
+    { icon: Calendar, label: "Початок",  value: fmt(course.startDate) },
+    { icon: Calendar, label: "Кінець",   value: fmt(course.endDate) },
+    { icon: Clock,    label: "Тривалість", value: durationDays ? `${durationDays} дн.` : undefined },
+  ].filter((m) => m.value);
+
   return (
-    <div className="px-6 py-4 flex flex-col gap-5 text-sm">
-      <div className="flex justify-between">
-        <h1 className="text-2xl font-bold text-[#ebac66]">{course.title}</h1>
-      </div>
+    <div className="min-h-screen">
+      {/* ── Hero banner ── */}
+      <div className="relative h-64 overflow-hidden">
+        <Image
+          src={course.imageUrl || "/course_backround.png"}
+          alt={course.title}
+          fill
+          className="object-cover"
+          priority
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#302E2B] via-[#302E2B]/55 to-transparent" />
 
-      <div className="flex gap-2 items-center">
-        {userProfile && (
-          <Link href={`/profile/${userProfile.id}/overview`} className="border rounded-lg cursor-pointer p-2">
-            <p className="text-[#ebac66] font-bold">Організація:</p>
-            <p>{userProfile.full_name || userProfile.user?.name || "Невідома організація"}</p>
-          </Link>
+        {/* category pill */}
+        {category && (
+          <span className="absolute top-4 left-6 bg-[#FDAB04] text-black text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wide">
+            {category.name}
+          </span>
         )}
-      </div>
 
-      <div className="flex gap-2">
-        <p className="text-[#ebac66] font-bold">Ціна:</p>
-        <p>{course.price} грн</p>
-      </div>
-
-      <div className="flex gap-2">
-        <p className="text-[#ebac66] font-bold">Для кого розрахований курс:</p>
-        <p>{level?.name}</p>
-      </div>
-
-      <div className="flex gap-2">
-        <p className="text-[#ebac66] font-bold">Де буде проходити:</p>
-        <p>{city?.name}</p>
-      </div>
-
-      <div className="flex gap-4">
-        <div className="flex gap-2">
-          <p className="text-[#ebac66] font-bold">Дата початку:</p>
-          <p>{course.startDate?.toLocaleDateString("uk-UA")}</p>
-        </div>
-        <div className="flex gap-2">
-          <p className="text-[#ebac66] font-bold">Дата закінчення:</p>
-          <p>{course.endDate?.toLocaleDateString("uk-UA")}</p>
+        {/* title block */}
+        <div className="absolute bottom-0 left-0 right-0 px-6 pb-5">
+          <h1 className="text-2xl sm:text-3xl font-black text-white leading-tight drop-shadow-lg mb-2">
+            {course.title}
+          </h1>
+          {userProfile && (
+            <Link
+              href={`/profile/${userProfile.id}/overview`}
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-[#FDAB04] hover:text-[#ebac66] transition-colors"
+            >
+              <CheckCircle size={13} />
+              {userProfile.full_name || userProfile.user?.name || "Невідома організація"}
+            </Link>
+          )}
         </div>
       </div>
 
-      <div className="flex gap-4">
-        <div className="flex gap-2">
-          <p className="text-[#ebac66] font-bold">Від якого віку:</p>
-          <p>{course.startAge}</p>
+      {/* ── Content ── */}
+      <div className="px-6 py-7 flex flex-col gap-7 max-w-3xl">
+
+        {/* meta pills row */}
+        <div className="flex flex-wrap gap-2">
+          {meta.map(({ icon: Icon, label, value }) => (
+            <div
+              key={label}
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/6 border border-white/10 text-xs text-white/70"
+            >
+              <Icon size={12} className="text-[#FDAB04] shrink-0" />
+              <span className="text-white/40">{label}:</span>
+              <span className="font-medium text-white/85">{value}</span>
+            </div>
+          ))}
         </div>
-        <div className="flex gap-2">
-          <p className="text-[#ebac66] font-bold">До якого віку:</p>
-          <p>{course.endAge}</p>
-        </div>
-      </div>
 
-      <div className="flex flex-col gap-2">
-        <p className="text-[#ebac66] font-bold">Опис:</p>
-        <ReadText value={course.description!} />
-      </div>
-
-      {/* Відгуки */}
-      <div className="border-t pt-4 mt-2">
-        <h2 className="text-xl font-bold text-[#ebac66] mb-4">Відгуки</h2>
-
-{canReview && (
-          <div className="mb-6">
-            <ReviewForm courseId={courseId} />
+        {/* description */}
+        {course.description && (
+          <div className="rounded-2xl bg-[#3D3A36] border border-white/8 px-5 py-5">
+            <p className="text-[10px] font-semibold text-white/30 uppercase tracking-widest mb-3">Опис курсу</p>
+            <div className="text-white/75 leading-relaxed text-sm">
+              <ReadText value={course.description} />
+            </div>
           </div>
         )}
 
-        {hasReviewed && (
-          <p className="text-sm text-green-600 mb-4">✓ Ви вже оцінили цей курс</p>
-        )}
+        {/* divider */}
+        <div className="border-t border-white/8" />
 
-        <ReviewsList
-          reviews={reviews.map((r) => ({
-            ...r,
-            createdAt: r.createdAt.toISOString(),
-          }))}
+        {/* tabs: відгуки / історія */}
+        <CourseDetailTabs
+          courseId={courseId}
+          reviews={reviews.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() }))}
           avgRating={avgRating}
-          count={reviews.length}
+          canReview={canReview}
+          hasReviewed={!!hasReviewed}
+          runs={course.runs.map((r) => ({
+            id: r.id,
+            startDate: r.startDate.toISOString(),
+            endDate: r.endDate.toISOString(),
+          }))}
         />
       </div>
     </div>

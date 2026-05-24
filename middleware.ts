@@ -15,6 +15,7 @@ const publicRoutes = [
   "/api/auth/register",
   "/api/auth/logout",
   "/api/auth/me",
+  "/api/uploadthing",
 ];
 
 function isPublicRoute(pathname: string): boolean {

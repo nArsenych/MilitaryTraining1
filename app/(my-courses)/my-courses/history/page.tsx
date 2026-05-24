@@ -20,7 +20,7 @@ const HistoryCourses = async () => {
     where: {
       customerId: profile.id,
       course: {
-        startDate: { lte: now },
+        endDate: { lte: now },
       },
     },
     include: {

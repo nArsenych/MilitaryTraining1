@@ -1,13 +1,14 @@
 'use server';
 
 import { db } from "@/lib/db";
+import { decrypt } from "@/lib/encryption";
 import nodemailer from "nodemailer";
 import type { Transporter } from "nodemailer";
 import SMTPTransport from "nodemailer/lib/smtp-transport";
 
 export async function sendConfirmationEmail(formData: FormData) {
   const purchaseId = formData.get('purchaseId') as string;
-  
+
   try {
     const purchase = await db.purchase.findUnique({
       where: { id: purchaseId },
@@ -33,6 +34,16 @@ export async function sendConfirmationEmail(formData: FormData) {
       throw new Error("User email not found");
     }
 
+    let locationLine = "";
+    if (purchase.course.location) {
+      try {
+        const decrypted = decrypt(purchase.course.location);
+        locationLine = `\nКурс буде проходити: ${decrypted}`;
+      } catch {
+        // if decryption fails, skip location silently
+      }
+    }
+
     const transportConfig: SMTPTransport.Options = {
       host: 'smtp.gmail.com',
       port: 587,
@@ -49,7 +60,7 @@ export async function sendConfirmationEmail(formData: FormData) {
       from: process.env.EMAIL_USER,
       to: userEmail,
       subject: `Запис на курс "${purchase.course.title}" підтверджено`,
-      text: `Вітаємо! Ваш запис на курс "${purchase.course.title}" було підтверджено. Чекаємо на вас!`
+      text: `Вітаємо! Ваш запис на курс "${purchase.course.title}" було підтверджено. Чекаємо на вас!${locationLine}`,
     });
 
     return { success: true } as const;

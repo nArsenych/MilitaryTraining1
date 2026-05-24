@@ -2,6 +2,7 @@ import EditCourseForm from "@/components/courses/EditCourseForm";
 import AlertBanner from "@/components/custom/AlertBaner";
 import { db } from "@/lib/db";
 import { getSession } from "@/lib/auth";
+import { decrypt } from "@/lib/encryption";
 import { redirect } from "next/navigation";
 import CourseActions from "@/components/courses/CourseActions";
 
@@ -47,6 +48,11 @@ const CourseBasics = async ({ params }: PageProps) => {
     return redirect("/instructor/courses");
   }
 
+  let decryptedLocation = "";
+  if (course.location) {
+    try { decryptedLocation = decrypt(course.location); } catch {}
+  }
+
   const requiredFields = [
     course.title,
     course.categoryId,
@@ -68,8 +74,9 @@ const CourseBasics = async ({ params }: PageProps) => {
         missingFieldsCount={missingFieldsCount}
         requiredFieldsCount={requiredFieldsCount}
       />
-      <EditCourseForm 
-        course={course} 
+      <EditCourseForm
+        course={course}
+        decryptedLocation={decryptedLocation}
         categories={categories.map((category) => ({
           label: category.name,
           value: category.id,
@@ -82,10 +89,10 @@ const CourseBasics = async ({ params }: PageProps) => {
           label: city.name,
           value: city.id,
         }))}
-        isCompleted={isCompleted} 
+        isCompleted={isCompleted}
       />
       <div className="mt-6 border-t pt-4">
-        <CourseActions courseId={courseId} courseTitle={course.title} />
+        <CourseActions courseId={courseId} courseTitle={course.title} courseEndDate={course.endDate} />
       </div>
     </div>
   );

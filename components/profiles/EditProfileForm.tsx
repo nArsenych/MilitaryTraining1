@@ -8,13 +8,16 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import toast from "react-hot-toast";
 import axios from "axios";
-import { Loader2, Sparkles } from "lucide-react";
-import EdrpouVerification from "@/components/custom/EdrpouVerification";
+import { Loader2, Sparkles, KeyRound, Lock, Trash2, Eye, EyeOff } from "lucide-react";
+import Link from "next/link";
 
 interface EditProfileFormProps {
   profile: Profile;
   isOrganization: boolean;
 }
+
+const inp = "bg-[#272523] border-white/10 text-white placeholder:text-white/30 focus:border-[#FDAB04]/50 transition-colors";
+const lbl = "block text-xs font-semibold mb-1.5 text-white/60 uppercase tracking-wider";
 
 const EditProfileForm = ({ profile, isOrganization }: EditProfileFormProps) => {
   const router = useRouter();
@@ -26,25 +29,56 @@ const EditProfileForm = ({ profile, isOrganization }: EditProfileFormProps) => {
   const [telegram, setTelegram] = useState(profile.telegram || "");
   const [facebook, setFacebook] = useState(profile.facebook || "");
   const [description, setDescription] = useState(profile.description || "");
-  const [edrpou, setEdrpou] = useState((profile as any).edrpou || "");
   const [address, setAddress] = useState((profile as any).address || "");
   const [age, setAge] = useState(profile.age?.toString() || "");
   const [isMilitary, setIsMilitary] = useState(profile.isMilitary || false);
+  const phoneRegex = /^\+?[\d\s\-()()]{7,20}$/;
   const [isLoading, setIsLoading] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [edrpouBlocked, setEdrpouBlocked] = useState(false);
+  const [showDeleteSection, setShowDeleteSection] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [showDeletePw, setShowDeletePw] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const edrpou = (profile as any).edrpou as string | null;
+
+  const handleDelete = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!deletePassword) {
+      toast.error("Введіть пароль для підтвердження");
+      return;
+    }
+    setIsDeleting(true);
+    try {
+      const res = await fetch(`/api/profiles/${profile.id}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: deletePassword }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast.error(data.error || "Помилка видалення профілю");
+        return;
+      }
+      toast.success("Профіль видалено");
+      window.location.href = "/sign-in";
+    } catch {
+      toast.error("Щось пішло не так");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   const handleGenerateDescription = async () => {
     if (!fullName.trim()) {
       toast.error("Спочатку введіть назву організації");
       return;
     }
-
     setIsGenerating(true);
     try {
       const res = await axios.post("/api/generate-description", {
         name: fullName,
-        edrpou,
+        edrpou: edrpou || undefined,
         address,
         phone: phoneNumber,
         email: contactEmail,
@@ -64,13 +98,13 @@ const EditProfileForm = ({ profile, isOrganization }: EditProfileFormProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (edrpouBlocked) {
-      toast.error("Організація під санкціями — збереження заборонено");
+    if (!fullName.trim()) {
+      toast.error("Введіть ім'я / назву");
       return;
     }
 
-    if (!fullName.trim()) {
-      toast.error("Введіть ім'я / назву");
+    if (phoneNumber && !phoneRegex.test(phoneNumber)) {
+      toast.error("Введіть коректний номер телефону (наприклад, +380XXXXXXXXX)");
       return;
     }
 
@@ -89,7 +123,6 @@ const EditProfileForm = ({ profile, isOrganization }: EditProfileFormProps) => {
         telegram: telegram || null,
         facebook: facebook || null,
         description: description || null,
-        edrpou: edrpou || null,
         address: address || null,
         age: age ? parseInt(age) : null,
         isMilitary: isMilitary || null,
@@ -107,13 +140,25 @@ const EditProfileForm = ({ profile, isOrganization }: EditProfileFormProps) => {
   return (
     <div className="p-6">
       <div className="w-full max-w-4xl">
-        <h1 className="text-2xl font-bold mb-6 text-[#ebac66]">
-          {isOrganization ? "Редагування профілю організації" : "Редагування профілю"}
-        </h1>
+        <div className="flex items-start justify-between mb-6">
+          <h1 className="text-2xl font-bold text-[#ebac66]">
+            {isOrganization ? "Редагування профілю організації" : "Редагування профілю"}
+          </h1>
+        </div>
+
+        {isOrganization && edrpou && (
+          <div className="mb-4 flex items-center gap-3 px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-sm">
+            <Lock size={14} className="text-white/40 shrink-0" />
+            <div>
+              <span className="text-white/40 text-xs">ЄДРПОУ (незмінний)</span>
+              <p className="text-white font-medium">{edrpou}</p>
+            </div>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">
+            <label className={lbl}>
               {isOrganization ? "Назва організації *" : "Повне ім'я *"}
             </label>
             <Input
@@ -121,89 +166,46 @@ const EditProfileForm = ({ profile, isOrganization }: EditProfileFormProps) => {
               onChange={(e) => setFullName(e.target.value)}
               placeholder={isOrganization ? "Назва вашої організації" : "Ваше повне ім'я"}
               required
+              className={inp}
             />
           </div>
 
-          {isOrganization && (
-            <EdrpouVerification
-              edrpou={edrpou}
-              setEdrpou={setEdrpou}
-              onVerified={(result) => {
-                setEdrpouBlocked(result.hasSanctions);
-              }}
-            />
-          )}
-
-          <div className="border-t pt-3 mt-3">
-            <h2 className="text-lg font-semibold mb-2">Способи зв&apos;язку</h2>
+          <div className="border-t border-white/8 pt-3 mt-3">
+            <h2 className="text-lg font-semibold mb-2 text-[#ebac66]">Способи зв&apos;язку</h2>
             <div className="flex flex-wrap" style={{ gap: "8px 16px" }}>
-              <div style={{ width: "calc(33% - 11px)" }}>
-                <label className="block text-sm font-medium mb-1">Телефон</label>
-                <Input
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
-                  placeholder="+380XXXXXXXXX"
-                />
-              </div>
-              <div style={{ width: "calc(33% - 11px)" }}>
-                <label className="block text-sm font-medium mb-1">Email для зв&apos;язку</label>
-                <Input
-                  type="email"
-                  value={contactEmail}
-                  onChange={(e) => setContactEmail(e.target.value)}
-                  placeholder="contact@organization.com"
-                />
-              </div>
-              <div style={{ width: "calc(33% - 11px)" }}>
-                <label className="block text-sm font-medium mb-1">Instagram</label>
-                <Input
-                  value={instagram}
-                  onChange={(e) => setInstagram(e.target.value)}
-                  placeholder="@your_instagram"
-                />
-              </div>
-              <div style={{ width: "calc(33% - 11px)" }}>
-                <label className="block text-sm font-medium mb-1">Telegram</label>
-                <Input
-                  value={telegram}
-                  onChange={(e) => setTelegram(e.target.value)}
-                  placeholder="@your_telegram"
-                />
-              </div>
-              <div style={{ width: "calc(33% - 11px)" }}>
-                <label className="block text-sm font-medium mb-1">Facebook</label>
-                <Input
-                  value={facebook}
-                  onChange={(e) => setFacebook(e.target.value)}
-                  placeholder="facebook.com/your_page"
-                />
-              </div>
+              {[
+                { label: "Телефон", value: phoneNumber, setter: setPhoneNumber, placeholder: "+380XXXXXXXXX", type: "text" },
+                { label: "Email для зв'язку", value: contactEmail, setter: setContactEmail, placeholder: "контакт@вашдомен.com", type: "email" },
+                { label: "Instagram", value: instagram, setter: setInstagram, placeholder: "@your_instagram", type: "text" },
+                { label: "Telegram", value: telegram, setter: setTelegram, placeholder: "@your_telegram", type: "text" },
+                { label: "Facebook", value: facebook, setter: setFacebook, placeholder: "facebook.com/your_page", type: "text" },
+              ].map(({ label, value, setter, placeholder, type }) => (
+                <div key={label} style={{ width: "calc(33% - 11px)" }}>
+                  <label className={lbl}>{label}</label>
+                  <Input
+                    type={type}
+                    value={value}
+                    onChange={(e) => setter(e.target.value)}
+                    placeholder={placeholder}
+                    className={inp}
+                  />
+                </div>
+              ))}
             </div>
           </div>
 
           {isOrganization && (
             <div>
-              <label className="block text-sm font-medium mb-1">Адреса (опціонально)</label>
-              <Input
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                placeholder="м. Київ, вул. ..."
-              />
+              <label className={lbl}>Адреса (опціонально)</label>
+              <Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="м. Київ, вул. ..." className={inp} />
             </div>
           )}
 
           {!isOrganization && (
-            <div className="border-t pt-3 mt-3 space-y-4">
+            <div className="border-t border-white/8 pt-3 mt-3 space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Вік</label>
-                <Input
-                  type="number"
-                  value={age}
-                  onChange={(e) => setAge(e.target.value)}
-                  placeholder="25"
-                  min={14}
-                  max={99}
-                />
+                <label className={lbl}>Вік</label>
+                <Input type="number" value={age} onChange={(e) => setAge(e.target.value)} placeholder="25" min={14} max={99} className={inp} />
               </div>
               <div className="flex items-center gap-2">
                 <input
@@ -211,20 +213,16 @@ const EditProfileForm = ({ profile, isOrganization }: EditProfileFormProps) => {
                   id="isMilitary"
                   checked={isMilitary}
                   onChange={(e) => setIsMilitary(e.target.checked)}
-                  className="h-4 w-4"
+                  className="h-4 w-4 accent-[#FDAB04]"
                 />
-                <label htmlFor="isMilitary" className="text-sm font-medium">
-                  Я військовослужбовець
-                </label>
+                <label htmlFor="isMilitary" className="text-sm font-medium text-white/75">Я військовослужбовець</label>
               </div>
             </div>
           )}
 
-          <div className="border-t pt-3 mt-3">
+          <div className="border-t border-white/8 pt-3 mt-3">
             <div className="flex items-center justify-between mb-1">
-              <label className="block text-sm font-medium">
-                Опис {isOrganization && "*"}
-              </label>
+              <label className={lbl}>Опис {isOrganization && "*"}</label>
               {isOrganization && (
                 <Button
                   type="button"
@@ -232,13 +230,9 @@ const EditProfileForm = ({ profile, isOrganization }: EditProfileFormProps) => {
                   size="sm"
                   onClick={handleGenerateDescription}
                   disabled={isGenerating}
-                  className="flex items-center gap-1"
+                  className="flex items-center gap-1 border-[#FDAB04]/30 text-[#FDAB04] hover:bg-[#FDAB04]/10 hover:border-[#FDAB04]/50"
                 >
-                  {isGenerating ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Sparkles className="h-4 w-4" />
-                  )}
+                  {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                   {isGenerating ? "Генерація..." : "Згенерувати опис"}
                 </Button>
               )}
@@ -246,25 +240,75 @@ const EditProfileForm = ({ profile, isOrganization }: EditProfileFormProps) => {
             <Textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder={
-                isOrganization
-                  ? "Опишіть вашу організацію, її місію та послуги..."
-                  : "Розкажіть про себе (опціонально)..."
-              }
+              placeholder={isOrganization ? "Опишіть вашу організацію, її місію та послуги..." : "Розкажіть про себе (опціонально)..."}
               rows={5}
               required={isOrganization}
+              className="bg-[#272523] border-white/10 text-white placeholder:text-white/30 focus:border-[#FDAB04]/50 transition-colors resize-none"
             />
-            {isOrganization && (
-              <p className="text-xs text-gray-500 mt-1">
-                Натисніть &quot;Згенерувати опис&quot; щоб ШІ створив опис, або напишіть самостійно
-              </p>
-            )}
           </div>
 
-          <Button type="submit" className="w-64 mt-6" disabled={isLoading}>
+          <Button
+            type="submit"
+            className="w-64 mt-6 bg-[#FDAB04] hover:bg-[#ebac66] text-black font-semibold transition-colors"
+            disabled={isLoading}
+          >
             {isLoading ? "Збереження..." : "Зберегти зміни"}
           </Button>
         </form>
+
+        <div className="mt-10 border-t border-red-500/20 pt-6">
+          {!showDeleteSection ? (
+            <button
+              type="button"
+              onClick={() => setShowDeleteSection(true)}
+              className="flex items-center gap-2 text-sm text-red-400/60 hover:text-red-400 transition-colors"
+            >
+              <Trash2 size={15} />
+              Видалити профіль
+            </button>
+          ) : (
+            <div className="max-w-sm p-5 rounded-2xl bg-red-500/8 border border-red-500/20">
+              <h3 className="font-semibold text-red-400 mb-1 flex items-center gap-2">
+                <Trash2 size={16} /> Видалення профілю
+              </h3>
+              <p className="text-xs text-white/40 mb-4">
+                Ця дія незворотна. Введіть пароль для підтвердження.
+              </p>
+              <form onSubmit={handleDelete} className="space-y-3">
+                <div className="relative">
+                  <Input
+                    type={showDeletePw ? "text" : "password"}
+                    value={deletePassword}
+                    onChange={(e) => setDeletePassword(e.target.value)}
+                    placeholder="Ваш пароль"
+                    required
+                    className="bg-[#272523] border-white/10 text-white placeholder:text-white/30 pr-10 focus:border-[#FDAB04]/50 transition-colors"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowDeletePw((v) => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white"
+                  >
+                    {showDeletePw ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                </div>
+                <div className="flex gap-2">
+                  <Button type="submit" disabled={isDeleting} className="bg-red-600 hover:bg-red-700 text-white text-sm">
+                    {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Видалити"}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => { setShowDeleteSection(false); setDeletePassword(""); }}
+                    className="text-sm text-white/50 hover:text-white"
+                  >
+                    Скасувати
+                  </Button>
+                </div>
+              </form>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

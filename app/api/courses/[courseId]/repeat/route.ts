@@ -22,39 +22,60 @@ export async function POST(
       return new NextResponse("Profile not found", { status: 404 });
     }
 
-    const originalCourse = await db.course.findUnique({
+    const course = await db.course.findUnique({
       where: { id: courseId, organizationId: profile.id },
     });
 
-    if (!originalCourse) {
+    if (!course) {
       return new NextResponse("Course not found", { status: 404 });
     }
 
-    // Знаходимо кореневий курс (якщо це вже повтор — беремо його parentCourseId)
-    const rootCourseId = originalCourse.parentCourseId || originalCourse.id;
-
     const { startDate, endDate } = await req.json();
 
-    const newCourse = await db.course.create({
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+
+    if (start < now) {
+      return NextResponse.json(
+        { error: "Дата початку не може бути в минулому" },
+        { status: 400 }
+      );
+    }
+
+    if (start >= end) {
+      return NextResponse.json(
+        { error: "Дата початку має бути раніше дати закінчення" },
+        { status: 400 }
+      );
+    }
+
+    // Save current dates as historical run (only if course already has dates)
+    if (course.startDate && course.endDate) {
+      await db.courseRun.create({
+        data: {
+          courseId: course.id,
+          startDate: course.startDate,
+          endDate: course.endDate,
+        },
+      });
+    }
+
+    // Delete all purchases so previous participants can re-enroll
+    await db.purchase.deleteMany({ where: { courseId: course.id } });
+
+    // Update course with new dates, reset to draft
+    const updated = await db.course.update({
+      where: { id: courseId },
       data: {
-        title: originalCourse.title,
-        description: originalCourse.description,
-        imageUrl: originalCourse.imageUrl,
-        categoryId: originalCourse.categoryId,
-        cityId: originalCourse.cityId,
-        levelId: originalCourse.levelId,
-        startAge: originalCourse.startAge,
-        endAge: originalCourse.endAge,
-        price: originalCourse.price,
-        organizationId: profile.id,
-        parentCourseId: rootCourseId,
+        startDate: start,
+        endDate: end,
         isPublished: false,
-        startDate: startDate ? new Date(startDate) : null,
-        endDate: endDate ? new Date(endDate) : null,
       },
     });
 
-    return NextResponse.json(newCourse, { status: 201 });
+    return NextResponse.json(updated, { status: 200 });
   } catch (error) {
     console.error("[COURSE_REPEAT]", error);
     return new NextResponse("Internal Error", { status: 500 });

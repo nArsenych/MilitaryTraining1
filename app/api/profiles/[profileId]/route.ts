@@ -1,23 +1,49 @@
 import { db } from "@/lib/db";
-import { getSession } from "@/lib/auth";
+import { getSession, removeAuthCookie } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
+import bcrypt from "bcryptjs";
 
 export const PATCH = async (
   req: NextRequest,
-  { params }: { params: Promise <{ profileId: string }> }
+  { params }: { params: Promise<{ profileId: string }> }
 ) => {
   try {
     const session = await getSession();
     const { profileId } = await params;
-    const values = await req.json();
+    const body = await req.json();
 
     if (!session) {
       return new Response("Unauthorized", { status: 401 });
     }
 
+    // edrpou is intentionally excluded — it cannot be changed after creation
+    const {
+      full_name,
+      phone_number,
+      contact_email,
+      instagram,
+      telegram,
+      facebook,
+      description,
+      address,
+      age,
+      isMilitary,
+    } = body;
+
     const profile = await db.profile.update({
       where: { id: profileId, user_id: session.userId },
-      data: { ...values },
+      data: {
+        full_name,
+        phone_number,
+        contact_email,
+        instagram,
+        telegram,
+        facebook,
+        description,
+        address,
+        age,
+        isMilitary,
+      },
     });
 
     return NextResponse.json(profile, { status: 200 });
@@ -39,17 +65,31 @@ export const DELETE = async (
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
+    const { password } = await req.json();
+    if (!password) {
+      return NextResponse.json({ error: "Пароль обов'язковий" }, { status: 400 });
+    }
+
+    const user = await db.user.findUnique({ where: { id: session.userId } });
+    if (!user) {
+      return NextResponse.json({ error: "Користувача не знайдено" }, { status: 404 });
+    }
+
+    const passwordValid = await bcrypt.compare(password, user.passwordHash);
+    if (!passwordValid) {
+      return NextResponse.json({ error: "Невірний пароль" }, { status: 400 });
+    }
+
     const profile = await db.profile.findUnique({
-      where: { id: profileId, user_id: session.userId }
+      where: { id: profileId, user_id: session.userId },
     });
 
     if (!profile) {
       return new NextResponse("Profile not found", { status: 404 });
     }
 
-    await db.profile.delete({
-      where: { id: profileId, user_id: session.userId },
-    });
+    await db.profile.delete({ where: { id: profileId, user_id: session.userId } });
+    await removeAuthCookie();
 
     return new NextResponse("Profile Deleted", { status: 200 });
   } catch (err) {

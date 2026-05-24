@@ -23,10 +23,10 @@ export const EnrollButton = ({
       const response = await axios.post(`/api/courses/${courseId}/enroll`);
       console.log("Enrollment response:", response.data); 
 
-      toast.success("Successfully enrolled!");
+      toast.success("Ви успішно записались на курс!");
       window.location.reload();
     } catch {
-      toast.error("Something went wrong");
+      toast.error("Щось пішло не так");
     } finally {
       setIsLoading(false);
     }

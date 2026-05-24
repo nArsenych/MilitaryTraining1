@@ -1,6 +1,18 @@
 import { getSession } from "@/lib/auth";
 import { NextResponse } from "next/server";
 
+function extractItems(data: unknown): unknown[] {
+  if (Array.isArray(data)) return data;
+  if (data && typeof data === "object") {
+    const obj = data as Record<string, unknown>;
+    for (const key of ["data", "items", "result", "list"]) {
+      if (Array.isArray(obj[key])) return obj[key] as unknown[];
+    }
+  }
+  return [];
+}
+
+
 export async function POST(req: Request) {
   try {
     const session = await getSession();
@@ -22,7 +34,7 @@ export async function POST(req: Request) {
     let hasSanctions = false;
     let sanctions: { id: number; name: string; sanctions_type: string }[] = [];
 
-    // 1. Перевірка санкцій НАЗК
+    // 1. Санкції НАЗК
     for (const domain of ["sanctions.nazk.gov.ua", "api-sanctions.nazk.gov.ua"]) {
       try {
         const res = await fetch(`https://${domain}/api/v2/sanction?code=${edrpou}`, {
@@ -44,19 +56,43 @@ export async function POST(req: Request) {
       } catch {}
     }
 
-    // 2. Перевірка через spending.gov.ua
-    try {
-      const res = await fetch(
-        `https://api.spending.gov.ua/api/v2/disposers/search?edrpou=${edrpou}`,
-        { signal: AbortSignal.timeout(5000), headers: { Accept: "application/json" } }
-      );
-      if (res.ok) {
+    // 2. Перевірка наявності в реєстрі — пробуємо кілька ендпоінтів spending.gov.ua
+    const spendingUrls = [
+      `https://api.spending.gov.ua/api/v2/disposers/search?edrpou=${edrpou}`,
+      `https://api.spending.gov.ua/api/v2/disposers?edrpou=${edrpou}`,
+      `https://api.spending.gov.ua/api/v1/disposers/search?edrpou=${edrpou}`,
+    ];
+
+    for (const url of spendingUrls) {
+      if (exists) break;
+      try {
+        const res = await fetch(url, {
+          signal: AbortSignal.timeout(7000),
+          headers: { Accept: "application/json" },
+        });
+        if (!res.ok) continue;
+
         const data = await res.json();
-        if (Array.isArray(data) && data.some((c: any) => String(c.edrpou) === edrpou)) {
+        const items = extractItems(data);
+
+        if (items.length > 0) {
           exists = true;
+          break;
         }
-      }
-    } catch {}
+
+        if (!exists && data && typeof data === "object") {
+          const obj = data as Record<string, unknown>;
+          const count =
+            (obj.pager as any)?.count ??
+            (obj.pager as any)?.total ??
+            obj.total_count ??
+            obj.count;
+          if (Number(count) > 0) {
+            exists = true;
+          }
+        }
+      } catch {}
+    }
 
     // 3. Якщо spending не знайшов — перевірка через Groq AI
     if (!exists && process.env.GROQ_API_KEY) {
@@ -76,7 +112,7 @@ export async function POST(req: Request) {
                 content: `Перевір чи існує українська організація з кодом ЄДРПОУ.
 Відповідай ТІЛЬКИ одним словом: YES або NO.
 YES — тільки якщо ти ТОЧНО ВПЕВНЕНИЙ що знаєш цю організацію.
-NO — якщо не знаєш або не впевнений. Краще NO ніж помилкове YES.`
+NO — якщо не знаєш або не впевнений. Краще NO ніж помилкове YES.`,
               },
               { role: "user", content: `ЄДРПОУ: ${edrpou}` },
             ],

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { Button } from "@/components/ui/button";
@@ -9,14 +9,29 @@ import { Textarea } from "@/components/ui/textarea";
 import { useProfile } from "@/hooks/UseProfile";
 import toast from "react-hot-toast";
 import axios from "axios";
-import { Loader2, Sparkles } from "lucide-react";
-import EdrpouVerification from "@/components/custom/EdrpouVerification";
+import { Loader2, Sparkles, User, Building2, Phone, Mail, Instagram, Send, Facebook, MapPin, Shield } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
+function FieldLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-1.5">
+      {children}
+    </label>
+  );
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="rounded-2xl bg-[#3D3A36] border border-white/8 px-6 py-5 flex flex-col gap-4">
+      <p className="text-xs font-semibold text-white/30 uppercase tracking-widest">{title}</p>
+      {children}
+    </div>
+  );
+}
+
 export default function CreateProfilePage() {
   const router = useRouter();
-  const [edrpouBlocked, setEdrpouBlocked] = useState(false);
   const { user } = useAuth();
   const { isOrganization } = useProfile();
 
@@ -27,24 +42,26 @@ export default function CreateProfilePage() {
   const [telegram, setTelegram] = useState("");
   const [facebook, setFacebook] = useState("");
   const [description, setDescription] = useState("");
-  const [edrpou, setEdrpou] = useState("");
   const [address, setAddress] = useState("");
   const [age, setAge] = useState("");
   const [isMilitary, setIsMilitary] = useState(false);
+  const phoneRegex = /^\+?[\d\s\-()()]{7,20}$/;
   const [isLoading, setIsLoading] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+
+  useEffect(() => {
+    if (user?.name) setFullName(user.name);
+  }, [user]);
 
   const handleGenerateDescription = async () => {
     if (!fullName.trim()) {
       toast.error("Спочатку введіть назву організації");
       return;
     }
-
     setIsGenerating(true);
     try {
       const res = await axios.post("/api/generate-description", {
         name: fullName,
-        edrpou,
         address,
         phone: phoneNumber,
         email: contactEmail,
@@ -63,22 +80,18 @@ export default function CreateProfilePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (edrpouBlocked) {
-      toast.error("Реєстрація організації під санкціями заборонена");
-      return;
-    }
-
     if (!fullName.trim()) {
       toast.error("Введіть ім'я / назву");
       return;
     }
-
+    if (phoneNumber && !phoneRegex.test(phoneNumber)) {
+      toast.error("Введіть коректний номер телефону (наприклад, +380XXXXXXXXX)");
+      return;
+    }
     if (isOrganization && !description.trim()) {
       toast.error("Опис організації обов'язковий");
       return;
     }
-
     setIsLoading(true);
     try {
       await axios.post("/api/profiles", {
@@ -89,18 +102,12 @@ export default function CreateProfilePage() {
         telegram: telegram || null,
         facebook: facebook || null,
         description: description || null,
-        edrpou: edrpou || null,
         address: address || null,
         age: age ? parseInt(age) : null,
         isMilitary: isMilitary || null,
       });
-
       toast.success("Профіль створено!");
-      if (isOrganization) {
-        router.push("/instructor/courses");
-      } else {
-        router.push("/");
-      }
+      router.push(isOrganization ? "/instructor/courses" : "/");
     } catch {
       toast.error("Помилка створення профілю");
     } finally {
@@ -109,164 +116,152 @@ export default function CreateProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#4E4C4B] p-6">
-      <div className="w-full max-w-4xl mx-auto">
-        <h1 className="text-2xl font-bold mb-6 text-[#ebac66]">
-          {isOrganization ? "Створення профілю організації" : "Створення профілю"}
-        </h1>
+    <div className="min-h-screen bg-[#302E2B] px-6 py-10">
+      <div className="max-w-2xl mx-auto flex flex-col gap-6">
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        {/* header */}
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 rounded-xl bg-[#FDAB04]/15">
+            {isOrganization
+              ? <Building2 size={20} className="text-[#FDAB04]" />
+              : <User size={20} className="text-[#FDAB04]" />
+            }
+          </div>
           <div>
-            <label className="block text-sm font-medium mb-1">
-              {isOrganization ? "Назва організації *" : "Повне ім'я *"}
-            </label>
-            <Input
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              placeholder={isOrganization ? "Назва вашої організації" : "Ваше повне ім'я"}
-              required
-            />
+            <h1 className="text-2xl font-bold text-white">
+              {isOrganization ? "Профіль організації" : "Створення профілю"}
+            </h1>
+            <p className="text-xs text-white/40 mt-0.5">
+              {isOrganization ? "Заповніть дані про вашу організацію" : "Заповніть інформацію про себе"}
+            </p>
           </div>
+        </div>
 
-          {isOrganization && (
-            <EdrpouVerification
-              edrpou={edrpou}
-              setEdrpou={setEdrpou}
-              onVerified={(result) => {
-                setEdrpouBlocked(result.hasSanctions);
-              }}
-            />
-          )}
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
 
-          <div className="border-t pt-3 mt-3">
-            <h2 className="text-lg font-semibold mb-2">Способи зв&apos;язку</h2>
-            <div className="flex flex-wrap" style={{ gap: "8px 16px" }}>
-              <div style={{ width: "calc(33% - 11px)" }}>
-                <label className="block text-sm font-medium mb-1">Телефон</label>
-                <Input
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
-                  placeholder="+380XXXXXXXXX"
-                />
-              </div>
-              <div style={{ width: "calc(33% - 11px)" }}>
-                <label className="block text-sm font-medium mb-1">Email для зв&apos;язку</label>
-                <Input
-                  type="email"
-                  value={contactEmail}
-                  onChange={(e) => setContactEmail(e.target.value)}
-                  placeholder="contact@organization.com"
-                />
-              </div>
-              <div style={{ width: "calc(33% - 11px)" }}>
-                <label className="block text-sm font-medium mb-1">Instagram</label>
-                <Input
-                  value={instagram}
-                  onChange={(e) => setInstagram(e.target.value)}
-                  placeholder="@your_instagram"
-                />
-              </div>
-              <div style={{ width: "calc(33% - 11px)" }}>
-                <label className="block text-sm font-medium mb-1">Telegram</label>
-                <Input
-                  value={telegram}
-                  onChange={(e) => setTelegram(e.target.value)}
-                  placeholder="@your_telegram"
-                />
-              </div>
-              <div style={{ width: "calc(33% - 11px)" }}>
-                <label className="block text-sm font-medium mb-1">Facebook</label>
-                <Input
-                  value={facebook}
-                  onChange={(e) => setFacebook(e.target.value)}
-                  placeholder="facebook.com/your_page"
-                />
-              </div>
-            </div>
-          </div>
-
-          {isOrganization && (
+          {/* main */}
+          <Section title="Основне">
             <div>
-              <label className="block text-sm font-medium mb-1">Адреса (опціонально)</label>
+              <FieldLabel>{isOrganization ? "Назва організації *" : "Повне ім'я *"}</FieldLabel>
               <Input
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                placeholder="м. Київ, вул. ..."
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder={isOrganization ? "Назва вашої організації" : "Ваше повне ім'я"}
+                required
+                className="bg-[#272523] border-white/10 text-white placeholder:text-white/30 focus:border-[#FDAB04]/50 transition-colors"
               />
             </div>
-          )}
 
-          {!isOrganization && (
-            <div className="border-t pt-3 mt-3 space-y-4">
+            {isOrganization && (
               <div>
-                <label className="block text-sm font-medium mb-1">Вік</label>
-                <Input
-                  type="number"
-                  value={age}
-                  onChange={(e) => setAge(e.target.value)}
-                  placeholder="25"
-                  min={14}
-                  max={99}
-                />
+                <FieldLabel>Адреса</FieldLabel>
+                <div className="relative">
+                  <MapPin size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
+                  <Input
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    placeholder="м. Київ, вул. ..."
+                    className="bg-[#272523] border-white/10 text-white placeholder:text-white/30 focus:border-[#FDAB04]/50 transition-colors pl-8"
+                  />
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="isMilitary"
-                  checked={isMilitary}
-                  onChange={(e) => setIsMilitary(e.target.checked)}
-                  className="h-4 w-4"
-                />
-                <label htmlFor="isMilitary" className="text-sm font-medium">
-                  Я військовослужбовець
-                </label>
-              </div>
-            </div>
-          )}
+            )}
 
-          <div className="border-t pt-3 mt-3">
-            <div className="flex items-center justify-between mb-1">
-              <label className="block text-sm font-medium">
-                Опис {isOrganization && "*"}
-              </label>
-              {isOrganization && (
+            {!isOrganization && (
+              <>
+                <div>
+                  <FieldLabel>Вік</FieldLabel>
+                  <Input
+                    type="number"
+                    value={age}
+                    onChange={(e) => setAge(e.target.value)}
+                    placeholder="25"
+                    min={14}
+                    max={99}
+                    className="bg-[#272523] border-white/10 text-white placeholder:text-white/30 focus:border-[#FDAB04]/50 transition-colors w-32"
+                  />
+                </div>
+                <label className="flex items-center gap-3 cursor-pointer group">
+                  <div
+                    onClick={() => setIsMilitary(!isMilitary)}
+                    className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors shrink-0 ${
+                      isMilitary ? "bg-[#FDAB04] border-[#FDAB04]" : "border-white/20 bg-white/5 group-hover:border-white/40"
+                    }`}
+                  >
+                    {isMilitary && <span className="text-black text-xs font-bold">✓</span>}
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Shield size={13} className="text-blue-400/70" />
+                    <span className="text-sm text-white/70">Я військовослужбовець</span>
+                  </div>
+                </label>
+              </>
+            )}
+          </Section>
+
+          {/* contacts */}
+          <Section title="Способи зв'язку">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {[
+                { icon: Phone, label: "Телефон", value: phoneNumber, setter: setPhoneNumber, placeholder: "+380XXXXXXXXX", type: "text" },
+                { icon: Mail, label: "Email для зв'язку", value: contactEmail, setter: setContactEmail, placeholder: "контакт@домен.com", type: "email" },
+                { icon: Instagram, label: "Instagram", value: instagram, setter: setInstagram, placeholder: "@your_instagram", type: "text" },
+                { icon: Send, label: "Telegram", value: telegram, setter: setTelegram, placeholder: "@your_telegram", type: "text" },
+                { icon: Facebook, label: "Facebook", value: facebook, setter: setFacebook, placeholder: "facebook.com/page", type: "text" },
+              ].map(({ icon: Icon, label, value, setter, placeholder, type }) => (
+                <div key={label}>
+                  <FieldLabel>{label}</FieldLabel>
+                  <div className="relative">
+                    <Icon size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
+                    <Input
+                      type={type}
+                      value={value}
+                      onChange={(e) => setter(e.target.value)}
+                      placeholder={placeholder}
+                      className="bg-[#272523] border-white/10 text-white placeholder:text-white/30 focus:border-[#FDAB04]/50 transition-colors pl-8"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Section>
+
+          {/* description */}
+          <Section title={`Опис${isOrganization ? " *" : ""}`}>
+            {isOrganization && (
+              <div className="flex justify-end -mt-1">
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   onClick={handleGenerateDescription}
                   disabled={isGenerating}
-                  className="flex items-center gap-1"
+                  className="flex items-center gap-1.5 text-xs border-[#FDAB04]/30 text-[#FDAB04] hover:bg-[#FDAB04]/10 hover:border-[#FDAB04]/50"
                 >
-                  {isGenerating ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Sparkles className="h-4 w-4" />
-                  )}
-                  {isGenerating ? "Генерація..." : "Згенерувати опис"}
+                  {isGenerating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                  {isGenerating ? "Генерація…" : "Згенерувати AI"}
                 </Button>
-              )}
-            </div>
+              </div>
+            )}
             <Textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder={
-                isOrganization
-                  ? "Опишіть вашу організацію, її місію та послуги..."
-                  : "Розкажіть про себе (опціонально)..."
-              }
+              placeholder={isOrganization
+                ? "Опишіть вашу організацію, її місію та послуги…"
+                : "Розкажіть про себе (опціонально)…"}
               rows={5}
               required={isOrganization}
+              className="bg-[#272523] border-white/10 text-white placeholder:text-white/30 focus:border-[#FDAB04]/50 transition-colors resize-none"
             />
-            {isOrganization && (
-              <p className="text-xs text-gray-500 mt-1">
-                Натисніть &quot;Згенерувати опис&quot; щоб ШІ створив опис на основі введених даних, або напишіть самостійно
-              </p>
-            )}
-          </div>
+          </Section>
 
-          <Button type="submit" className="w-64 mt-6" disabled={isLoading}>
-            {isLoading ? "Збереження..." : "Створити профіль"}
+          <Button
+            type="submit"
+            disabled={isLoading}
+            className="bg-[#FDAB04] hover:bg-[#ebac66] text-black font-semibold h-11 mt-2 transition-colors"
+          >
+            {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+            {isLoading ? "Збереження…" : "Створити профіль"}
           </Button>
         </form>
       </div>

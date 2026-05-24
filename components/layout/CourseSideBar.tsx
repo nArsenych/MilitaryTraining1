@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { Course } from "@prisma/client";
 import Link from "next/link";
 import { EnrollButton } from "@/components/custom/EnrollButton";
+import { Home, Info, LogIn, CheckCircle2 } from "lucide-react";
 
 interface CourseSideBarProps {
   course: Course;
@@ -13,64 +14,71 @@ const CourseSideBar = async ({ course, studentId }: CourseSideBarProps) => {
   let existingPurchase = null;
 
   if (studentId) {
-    userProfile = await db.profile.findUnique({
-      where: { user_id: studentId },
-    });
-
+    userProfile = await db.profile.findUnique({ where: { user_id: studentId } });
     if (userProfile) {
       existingPurchase = await db.purchase.findUnique({
-        where: {
-          customerId_courseId: {
-            customerId: userProfile.id,
-            courseId: course.id,
-          },
-        },
+        where: { customerId_courseId: { customerId: userProfile.id, courseId: course.id } },
       });
     }
   }
 
   return (
-    <div className="hidden md:flex flex-col w-64 border-r shadow-md px-3 text-sm font-medium bg-[#4E4C4B] pt-4">
-      <h1 className="text-lg font-bold text-center mb-4 text-[#ebac66]">
-        {course.title}
-      </h1>
+    <aside className="hidden md:flex flex-col w-60 bg-[#272523] border-r border-white/10 px-3 pt-6 pb-4">
+      {/* course chip */}
+      <div className="mx-2 mb-4 px-3 py-2.5 rounded-xl bg-[#FDAB04]/10 border border-[#FDAB04]/20">
+        <p className="text-[10px] text-[#FDAB04]/50 uppercase tracking-wider">Курс</p>
+        <p className="text-sm font-semibold text-[#FDAB04] line-clamp-2 leading-snug mt-0.5">
+          {course.title}
+        </p>
+      </div>
 
-      <Link href="/" className="p-3 rounded-lg hover:bg-[#ebac66] mt-4">
-        Home
-      </Link>
-      <Link
-        href={`/courses/${course.id}/overview`}
-        className="p-3 rounded-lg hover:bg-[#ebac66] mt-4"
-      >
-        Інформація про курс
-      </Link>
+      <nav className="flex flex-col gap-0.5">
+        <Link
+          href="/"
+          className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-white/55 hover:text-white hover:bg-white/8 transition-all"
+        >
+          <Home size={16} className="text-white/40" />
+          Головна
+        </Link>
+        <Link
+          href={`/courses/${course.id}/overview`}
+          className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-white/55 hover:text-white hover:bg-white/8 transition-all"
+        >
+          <Info size={16} className="text-white/40" />
+          Інформація про курс
+        </Link>
+      </nav>
 
-      {/* Не авторизований — кнопка "Увійти щоб записатися" */}
+      <div className="my-3 mx-2 border-t border-white/10" />
+
+      {/* enroll area */}
       {!studentId && (
         <Link
           href={`/sign-in?redirect=/courses/${course.id}/overview`}
-          className="mt-4 p-3 rounded-lg bg-[#ebac66] hover:bg-[#d99b55] text-center text-black font-medium"
+          className="flex items-center justify-center gap-2 mx-2 px-4 py-2 rounded-lg bg-[#FDAB04] hover:bg-[#ebac66] text-black text-sm font-semibold transition-colors"
         >
+          <LogIn size={15} />
           Увійти щоб записатися
         </Link>
       )}
 
-      {/* Авторизований клієнт, ще не записаний */}
       {studentId && userProfile && !userProfile.isOrganization && !existingPurchase && (
-        <EnrollButton
-          courseId={course.id}
-          studentId={studentId}
-          className="mt-4 p-3 rounded-lg bg-[#ebac66] hover:bg-[#d99b55] text-center"
-        />
+        <div className="mx-2">
+          <EnrollButton
+            courseId={course.id}
+            studentId={studentId}
+            className="w-full flex items-center justify-center px-4 py-2 rounded-lg bg-[#FDAB04] hover:bg-[#ebac66] text-black text-sm font-semibold transition-colors"
+          />
+        </div>
       )}
 
-      {/* Вже записаний */}
       {existingPurchase && (
-        <p className="mt-4 p-3 rounded-lg bg-green-100 text-center text-green-800 font-medium">
-          Ви записані на цей курс ✓
-        </p>
+        <div className="mx-2 flex items-center gap-2 px-3 py-2 rounded-lg bg-green-500/10 border border-green-500/20 text-green-400 text-sm font-medium">
+          <CheckCircle2 size={15} className="shrink-0" />
+          Ви записані
+        </div>
       )}
-    </div>
+    </aside>
   );
 };
 

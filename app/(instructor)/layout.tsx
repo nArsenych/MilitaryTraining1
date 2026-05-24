@@ -10,11 +10,9 @@ const Instructorlayout = async ({ children }: { children: React.ReactNode }) => 
   }
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="flex-1 flex h-full">
-        <Sidebar />
-        <div className="flex-1 bg-[#4E4C4B] min-h-screen">{children}</div>
-      </div>
+    <div className="min-h-screen flex">
+      <Sidebar />
+      <div className="flex-1 bg-[#302E2B]">{children}</div>
     </div>
   );
 };

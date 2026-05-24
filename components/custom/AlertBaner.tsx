@@ -7,29 +7,19 @@ interface AlertBannerProps {
   missingFieldsCount: number;
 }
 
-const AlertBanner = ({
-  isCompleted,
-  requiredFieldsCount,
-  missingFieldsCount,
-}: AlertBannerProps) => {
+const AlertBanner = ({ isCompleted, requiredFieldsCount, missingFieldsCount }: AlertBannerProps) => {
   return (
-    <Alert
-      className="my-4"
-      variant={`${isCompleted ? "complete" : "destructive"}`}
-    >
-      {isCompleted ? (
-        <Rocket className="h-4 w-4" />
-      ) : (
-        <TriangleAlert className="h-4 w-4" />
-      )}
+    <Alert className="my-4" variant={isCompleted ? "complete" : "destructive"}>
+      {isCompleted ? <Rocket className="h-4 w-4" /> : <TriangleAlert className="h-4 w-4" />}
       <AlertTitle className="text-xs font-medium">
-        {missingFieldsCount} missing field(s) / {requiredFieldsCount} required
-        fields
+        {isCompleted
+          ? "Усі обов'язкові поля заповнено"
+          : `Не заповнено ${missingFieldsCount} з ${requiredFieldsCount} обов'язкових полів`}
       </AlertTitle>
       <AlertDescription className="text-xs">
         {isCompleted
-          ? "Great job! Ready to publish"
-          : "You can only publish when all the required fields are completed"}
+          ? "Курс готовий до публікації"
+          : "Публікація доступна лише після заповнення всіх обов'язкових полів"}
       </AlertDescription>
     </Alert>
   );

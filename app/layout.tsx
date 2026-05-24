@@ -17,8 +17,8 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Military Training",
-  description: "A web application for finding and enrolling in offline military training courses",
+  title: "MilitaryTraining",
+  description: "Вебзастосунок для пошуку та запису на офлайн-курси військової підготовки",
 };
 
 export default function RootLayout({
@@ -27,7 +27,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="uk">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

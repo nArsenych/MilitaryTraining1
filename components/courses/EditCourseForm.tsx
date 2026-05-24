@@ -46,10 +46,12 @@ const formSchema = z.object({
   cityId: z.string().min(1, {
     message: "Місто обов'язкове",
   }),
+  location: z.string().optional(),
 })
 
 interface EditCourseFormProps {
   course: Course;
+  decryptedLocation?: string;
   categories: {
     label: string;
     value: string;
@@ -65,7 +67,7 @@ interface EditCourseFormProps {
   isCompleted: boolean;
 }
 
-const EditCourseForm = ({ course, categories, levels, cities, isCompleted }: EditCourseFormProps) => {
+const EditCourseForm = ({ course, decryptedLocation = "", categories, levels, cities, isCompleted }: EditCourseFormProps) => {
   const router = useRouter();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -76,23 +78,38 @@ const EditCourseForm = ({ course, categories, levels, cities, isCompleted }: Edi
       categoryId: course.categoryId,
       levelId: course.levelId || "",
       imageUrl: course.imageUrl || "",
-      price: course.price || undefined,
-      startAge: course.startAge || undefined,
-      endAge: course.endAge || undefined,
+      price: course.price ?? undefined,
+      startAge: course.startAge ?? 0,
+      endAge: course.endAge ?? undefined,
       startDate: course.startDate ? new Date(course.startDate) : undefined,
       endDate: course.endDate ? new Date(course.endDate) : undefined,
-      cityId: course.cityId || ""
+      cityId: course.cityId || "",
+      location: decryptedLocation,
     },
   })
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    const start = values.startDate ? new Date(values.startDate) : null;
+    const end = values.endDate ? new Date(values.endDate) : null;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (start && start < today) {
+      toast.error("Дата початку не може бути в минулому");
+      return;
+    }
+    if (start && end && start >= end) {
+      toast.error("Дата початку має бути раніше дати закінчення");
+      return;
+    }
+
     try {
       await axios.patch(`/api/courses/${course.id}`, values);
       toast.success("Зміни збережено");
       router.refresh();
     } catch (err) {
       console.log("Failed to update the course", err);
-      toast.error("Something went wrong!");
+      toast.error("Щось пішло не так!");
     }
   };
 
@@ -101,7 +118,7 @@ const EditCourseForm = ({ course, categories, levels, cities, isCompleted }: Edi
     <>
       <div className="flex flex-col gap-2 sm:flex-row sm:justify-between mb-7">
         <div className="flex gap-5">
-          <p>Заповніть інформацію про курс</p>
+          <p className="text-white/70 text-sm">Заповніть інформацію про курс</p>
         </div>
 
         <div className="flex gap-5 items-start">
@@ -115,7 +132,10 @@ const EditCourseForm = ({ course, categories, levels, cities, isCompleted }: Edi
         </div>
       </div>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="space-y-8 [&_input]:text-white [&_input]:bg-[#272523] [&_input]:border-white/10 [&_input::placeholder]:text-white/30 [&_label]:text-white/70 [&_.text-destructive]:text-red-400"
+        >
           <FormField
             control={form.control}
             name="title"
@@ -286,6 +306,25 @@ const EditCourseForm = ({ course, categories, levels, cities, isCompleted }: Edi
           />
           <FormField
             control={form.control}
+            name="location"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  Локація проведення
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="вул. Хрещатик 1, Київ (або інша адреса)"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
             name="imageUrl"
             render={({ field }) => (
               <FormItem className="flex flex-col">
@@ -331,7 +370,7 @@ const EditCourseForm = ({ course, categories, levels, cities, isCompleted }: Edi
                 Скасувати
               </Button>
             </Link>
-            <Button type="submit">Зберегти</Button>
+            <Button type="submit" className="bg-[#FDAB04] hover:bg-[#ebac66] text-black font-semibold transition-colors">Зберегти</Button>
           </div>
         </form>
       </Form>

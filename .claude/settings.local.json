@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -v \"//.*\\\\\"\")",
+      "Bash(dir /s /b \"C:\\\\Users\\\\arsen\\\\MilitaryTraining-jwt-auth\\\\app\\\\api\\\\courses\\\\*.ts\")",
+      "Bash(node *)",
+      "Bash(npx prisma *)",
+      "Bash(taskkill /F /IM node.exe)",
+      "Bash(Start-Sleep -Seconds 2)",
+      "Bash(dir /s /b \"C:\\\\Users\\\\arsen\\\\MilitaryTraining-jwt-auth\\\\app\\\\\\(instructor\\)\\\\*.tsx\")",
+      "Bash(npx tsc *)",
+      "Bash(xargs grep -l \"CourseRun\\\\|courseRun\\\\|\\\\.runs\")",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\arsen\\\\MilitaryTraining-jwt-auth\" -Recurse -Directory -ErrorAction SilentlyContinue)",
+      "Bash(Select-Object -ExpandProperty FullName)"
+    ]
+  }
+}

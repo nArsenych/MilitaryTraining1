@@ -2,6 +2,11 @@ generator client {
   provider = "prisma-client-js"
 }
 
+generator erd {
+  provider = "prisma-erd-generator"
+  output   = "./ERD.svg"
+}
+
 datasource db {
   provider     = "mysql"
   url          = env("DATABASE_URL")
@@ -15,7 +20,6 @@ model User {
   name         String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-
   profile      Profile?
 }
 
@@ -23,10 +27,9 @@ model Review {
   id        String   @id @default(uuid())
   rating    Int
   comment   String?  @db.Text
-  courseId   String
+  courseId  String
   profileId String
   createdAt DateTime @default(now())
-
   course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
   profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
 
@@ -36,32 +39,32 @@ model Review {
 }
 
 model Course {
-  id             String    @id @default(uuid())
-  organizationId String
-  title          String    @db.Text
-  startAge       Int?
-  endAge         Int?
-  description    String?   @db.Text
-  imageUrl       String?   @db.Text
-  isPublished    Boolean   @default(false)
-  categoryId     String
-  cityId         String?
-  startDate      DateTime?
-  endDate        DateTime?
-  createdAt      DateTime  @default(now())
-  levelId        String?
-  purchases      Purchase[]
-  price          Float?    @default(0) @db.Float
-  reviews    Review[]
-  
-  parentCourseId String?
-  parentCourse   Course?   @relation("CourseHistory", fields: [parentCourseId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  repeatedCourses Course[] @relation("CourseHistory")
-
-  category       Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  city           City?     @relation(fields: [cityId], references: [id], onDelete: Cascade)
-  level          Level?    @relation(fields: [levelId], references: [id], onDelete: Cascade)
-  organization   Profile   @relation("OrganizationCourses", fields: [organizationId], references: [id], onDelete: Cascade)
+  id              String     @id @default(uuid())
+  organizationId  String
+  title           String     @db.Text
+  startAge        Int?
+  endAge          Int?
+  description     String?    @db.Text
+  imageUrl        String?    @db.Text
+  isPublished     Boolean    @default(false)
+  categoryId      String
+  cityId          String?
+  startDate       DateTime?
+  endDate         DateTime?
+  createdAt       DateTime   @default(now())
+  levelId         String?
+  price           Float?     @default(0) @db.Float
+  location        String?    @db.Text
+  parentCourseId  String?
+  purchases       Purchase[]
+  reviews         Review[]
+  runs            CourseRun[]
+  parentCourse    Course?    @relation("CourseHistory", fields: [parentCourseId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  repeatedCourses Course[]   @relation("CourseHistory")
+  category        Category   @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  city            City?      @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  level           Level?     @relation(fields: [levelId], references: [id], onDelete: Cascade)
+  organization    Profile    @relation("OrganizationCourses", fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@index([organizationId])
   @@index([categoryId])
@@ -82,15 +85,14 @@ model Profile {
   telegram          String?    @db.Text
   facebook          String?    @db.Text
   isMilitary        Boolean?   @default(false)
-  edrpou            String?    @db.Text
   address           String?    @db.Text
   contact_email     String?    @db.Text
-  reviews    Review[]
-
+  edrpou            String?    @db.Text
+  reviews           Review[]
   user              User       @relation(fields: [user_id], references: [id], onDelete: Cascade)
   createdCourses    Course[]   @relation("OrganizationCourses")
   enrolledCourses   Purchase[] @relation("StudentEnrollments")
-  courseEnrollments  Purchase[] @relation("OrganizationEnrollments")
+  courseEnrollments Purchase[] @relation("OrganizationEnrollments")
 
   @@index([user_id])
 }
@@ -98,20 +100,30 @@ model Profile {
 model Purchase {
   id             String   @id @default(uuid())
   customerId     String
-  courseId        String
+  courseId       String
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
-
+  organizationId String
+  confirmed      Boolean  @default(false)
   course         Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
   student        Profile  @relation("StudentEnrollments", fields: [customerId], references: [id])
   organization   Profile  @relation("OrganizationEnrollments", fields: [organizationId], references: [id])
-  organizationId String
-  confirmed      Boolean  @default(false)
 
+  @@unique([customerId, courseId])
   @@index([courseId])
   @@index([customerId])
   @@index([organizationId])
-  @@unique([customerId, courseId])
+}
+
+model CourseRun {
+  id        String   @id @default(uuid())
+  courseId  String
+  startDate DateTime
+  endDate   DateTime
+  createdAt DateTime @default(now())
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@index([courseId])
 }
 
 model Category {

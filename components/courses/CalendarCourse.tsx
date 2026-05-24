@@ -2,11 +2,11 @@
 
 import * as React from "react";
 import { Calendar } from "@/components/ui/calendar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from "date-fns";
 import { Course } from "@prisma/client";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import Link from "next/link";
+import { CalendarDays, ChevronRight } from "lucide-react";
 
 interface CalendarCoursesProps {
     courses: (Course & {
@@ -19,105 +19,103 @@ const CalendarCourses = ({ courses }: CalendarCoursesProps) => {
     const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(new Date());
     const [selectedCourses, setSelectedCourses] = React.useState<typeof courses>([]);
 
-    const isDateInRange = (date: Date, startDate: Date, endDate: Date) => {
-        return date >= startDate && date <= endDate;
-    };
+    const isDateInRange = (date: Date, startDate: Date, endDate: Date) =>
+        date >= startDate && date <= endDate;
 
     const handleSelect = (date: Date | undefined) => {
         setSelectedDate(date);
         if (date) {
-            const coursesOnDate = courses.filter((course) => {
-                if (!course.startDate || !course.endDate) return false;
-
-                const courseStartDate = new Date(course.startDate);
-                const courseEndDate = new Date(course.endDate);
-                return isDateInRange(date, courseStartDate, courseEndDate);
-            });
-            setSelectedCourses(coursesOnDate);
+            setSelectedCourses(
+                courses.filter((course) => {
+                    if (!course.startDate || !course.endDate) return false;
+                    return isDateInRange(date, new Date(course.startDate), new Date(course.endDate));
+                })
+            );
         } else {
             setSelectedCourses([]);
         }
     };
 
-    const getDayHasCourses = (day: Date) => {
-        return courses.some((course) => {
+    const getDayHasCourses = (day: Date) =>
+        courses.some((course) => {
             if (!course.startDate || !course.endDate) return false;
-
-            const courseStartDate = new Date(course.startDate);
-            const courseEndDate = new Date(course.endDate);
-            return isDateInRange(day, courseStartDate, courseEndDate);
+            return isDateInRange(day, new Date(course.startDate), new Date(course.endDate));
         });
-    };
 
     return (
-        <div className="flex gap-4 h-[50vh]">
-            <div className="border rounded-lg p-4">
+        <div className="flex flex-col md:flex-row gap-5 min-h-[380px]">
+            {/* calendar panel */}
+            <div className="bg-[#3D3A36] border border-white/10 rounded-2xl p-4 shrink-0">
+                <div className="flex items-center gap-2 mb-3 px-1">
+                    <CalendarDays size={16} className="text-[#FDAB04]" />
+                    <span className="text-sm font-semibold text-white/70">Розклад курсів</span>
+                </div>
                 <Calendar
                     mode="single"
                     selected={selectedDate}
                     onSelect={handleSelect}
-                    modifiers={{
-                        hasCourses: (date) => getDayHasCourses(date),
-                    }}
+                    modifiers={{ hasCourses: (date) => getDayHasCourses(date) }}
                     modifiersStyles={{
                         hasCourses: {
-                            backgroundColor: "#F1CDA6",
-                            fontWeight: "bold",
+                            backgroundColor: "rgba(253,171,4,0.25)",
+                            color: "#FDAB04",
+                            fontWeight: "700",
+                            borderRadius: "6px",
                         },
                     }}
-                    className="rounded-md"
+                    className="rounded-xl text-white [&_button]:text-white [&_button:hover]:bg-white/10 [&_.rdp-day_selected]:bg-[#FDAB04] [&_.rdp-day_selected]:text-black"
                 />
             </div>
 
-            <Card className="flex-1">
-                <CardHeader>
-                    <CardTitle>
+            {/* courses list panel */}
+            <div className="flex-1 bg-[#3D3A36] border border-white/10 rounded-2xl flex flex-col overflow-hidden">
+                <div className="px-5 py-4 border-b border-white/10">
+                    <p className="text-white font-semibold">
                         {selectedDate
                             ? `Курси на ${format(selectedDate, "dd.MM.yyyy")}`
                             : "Виберіть дату"}
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <ScrollArea className="h-[400px] pr-4">
-                        {selectedCourses.length > 0 ? (
-                            <div className="space-y-4">
-                                {selectedCourses.map((course) => (
+                    </p>
+                    {selectedCourses.length > 0 && (
+                        <p className="text-xs text-white/40 mt-0.5">{selectedCourses.length} курс(ів)</p>
+                    )}
+                </div>
 
-                                    <Link
-                                        key={course.id}
-                                        href={`/courses/${course.id}/overview`}
-                                        className="block hover:no-underline focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                                    >
-
-                                        <Card key={course.id} className="p-4">
-                                            <h3 className="font-semibold text-lg mb-2">{course.title}</h3>
-                                            <div className="text-sm text-muted-foreground space-y-1">
-                                                <p>Категорія: {course.category.name}</p>
-                                                <p>Організатор: {course.organizationName}</p>
-                                                {course.startDate && course.endDate && (
-                                                    <p>
-                                                        Період: {format(new Date(course.startDate), "dd.MM.yyyy")} -{" "}
-                                                        {format(new Date(course.endDate), "dd.MM.yyyy")}
-                                                    </p>
-                                                )}
-                                                {course.startAge && (
-                                                    <p>Вік: від {course.startAge} років</p>
-                                                )}
-                                            </div>
-                                        </Card>
-                                    </Link>
-                                ))}
-                            </div>
-                        ) : (
-                            <p className="text-muted-foreground text-center">
-                                {selectedDate
-                                    ? "На цю дату немає курсів"
-                                    : "Виберіть дату для перегляду курсів"}
+                <ScrollArea className="flex-1 px-4 py-3">
+                    {selectedCourses.length > 0 ? (
+                        <div className="space-y-3">
+                            {selectedCourses.map((course) => (
+                                <Link
+                                    key={course.id}
+                                    href={`/courses/${course.id}/overview`}
+                                    className="group flex items-start justify-between gap-3 p-4 rounded-xl bg-white/5 hover:bg-[#FDAB04]/10 border border-white/5 hover:border-[#FDAB04]/30 transition-all"
+                                >
+                                    <div className="flex-1 min-w-0">
+                                        <h3 className="font-semibold text-sm text-white group-hover:text-[#FDAB04] transition-colors truncate">
+                                            {course.title}
+                                        </h3>
+                                        <p className="text-xs text-white/40 mt-1 truncate">
+                                            {course.organizationName} · {course.category.name}
+                                        </p>
+                                        {course.startDate && course.endDate && (
+                                            <p className="text-xs text-white/30 mt-0.5">
+                                                {format(new Date(course.startDate), "dd.MM")} – {format(new Date(course.endDate), "dd.MM.yyyy")}
+                                            </p>
+                                        )}
+                                    </div>
+                                    <ChevronRight size={16} className="text-white/20 group-hover:text-[#FDAB04] shrink-0 mt-0.5 transition-colors" />
+                                </Link>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="flex flex-col items-center justify-center h-40 text-center">
+                            <CalendarDays size={32} className="text-white/10 mb-3" />
+                            <p className="text-sm text-white/30">
+                                {selectedDate ? "На цю дату немає курсів" : "Виберіть дату для перегляду курсів"}
                             </p>
-                        )}
-                    </ScrollArea>
-                </CardContent>
-            </Card>
+                        </div>
+                    )}
+                </ScrollArea>
+            </div>
         </div>
     );
 };

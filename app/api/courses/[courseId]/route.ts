@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { getSession } from "@/lib/auth";
+import { encrypt } from "@/lib/encryption";
 import { NextRequest, NextResponse } from "next/server";
 
 export const PATCH = async (
@@ -23,9 +24,25 @@ export const PATCH = async (
       return new Response("Profile not found", { status: 404 });
     }
 
+    const {
+      categoryId,
+      levelId,
+      cityId,
+      location,
+      ...rest
+    } = values;
+
     const course = await db.course.update({
       where: { id: courseId, organizationId: profile.id },
-      data: { ...values },
+      data: {
+        ...rest,
+        ...(categoryId !== undefined && { category: { connect: { id: categoryId } } }),
+        ...(levelId !== undefined && { level: { connect: { id: levelId } } }),
+        ...(cityId !== undefined && { city: { connect: { id: cityId } } }),
+        ...(location !== undefined && {
+          location: location ? encrypt(location) : null,
+        }),
+      },
     });
 
     return NextResponse.json(course, { status: 200 });

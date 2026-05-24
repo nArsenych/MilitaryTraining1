@@ -10,8 +10,8 @@ export const dynamic = "force-dynamic";
   }: {
     params: Promise<{ organizationId: string }>;
   }) => {
-    const courses = await getCoursesByOrganization(null);
-    const { organizationId } = await params; 
+    const { organizationId } = await params;
+    const courses = await getCoursesByOrganization(organizationId);
     return (
       <div className="md:px-10 xl:px-16 pb-16 bg-[#4E4C4B] min-h-screen pt-5">
         <Organization 

@@ -53,10 +53,10 @@ function SignInForm() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium mb-1">Email</label>
+          <label className="block text-sm font-medium mb-1">Електронна пошта</label>
           <Input
             type="email"
-            placeholder="your@email.com"
+            placeholder="ваша@пошта.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required

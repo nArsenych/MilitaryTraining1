@@ -21,11 +21,9 @@ const Instructorlayout = async ({children}: {children: React.ReactNode}) => {
     }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <div className="flex-1 flex h-full">
-        <ProfileSidebar profile={profile}/>
-        <div className="flex-1 bg-[#4E4C4B] min-h-screen">{children}</div>
-      </div>
+    <div className="min-h-screen flex">
+      <ProfileSidebar profile={profile} />
+      <div className="flex-1 bg-[#4E4C4B]">{children}</div>
     </div>
   );
 };

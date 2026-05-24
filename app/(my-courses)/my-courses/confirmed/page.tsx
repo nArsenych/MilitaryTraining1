@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { Calendar, MapPin, Tag, Users } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -21,7 +22,7 @@ const ConfirmedCourses = async () => {
       customerId: profile.id,
       confirmed: true,
       course: {
-        startDate: { gt: now },
+        endDate: { gt: now },
       },
     },
     include: {
@@ -39,51 +40,84 @@ const ConfirmedCourses = async () => {
 
   return (
     <div className="p-6 min-h-screen">
-      <h2 className="text-2xl font-bold mb-6 text-green-700">
+      <h2 className="text-2xl font-bold mb-6 text-[#FDAB04]">
         Підтверджені курси ({purchases.length})
       </h2>
+
       {purchases.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-gray-500 text-lg">Немає курсів з підтвердженим записом.</p>
-          <Link href="/all" className="text-[#ebac66] hover:underline mt-4 inline-block">
+        <div className="text-center py-16">
+          <p className="text-white/40 text-lg mb-4">Немає курсів з підтвердженим записом.</p>
+          <Link
+            href="/all"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#FDAB04]/15 border border-[#FDAB04]/30 text-[#FDAB04] text-sm hover:bg-[#FDAB04]/25 transition-colors"
+          >
             Переглянути доступні курси
           </Link>
         </div>
       ) : (
-        <div className="grid gap-4">
-          {purchases.map((purchase) => (
-            <Link
-              key={purchase.id}
-              href={`/courses/${purchase.course.id}/overview`}
-              className="block border rounded-lg p-5 bg-[#FFF8EE] hover:bg-[#F1CDA6] transition h-fit"
-            >
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="text-lg font-semibold">{purchase.course.title}</h3>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Організація: {purchase.course.organization?.full_name || "Невідомо"}
-                  </p>
-                  <div className="flex gap-4 mt-2 text-sm text-gray-500">
-                    {purchase.course.category && <span>{purchase.course.category.name}</span>}
-                    {purchase.course.city && <span>{purchase.course.city.name}</span>}
-                    {purchase.course.level && <span>{purchase.course.level.name}</span>}
-                  </div>
-                  {purchase.course.price !== null && (
-                    <p className="text-sm font-medium mt-2">{purchase.course.price} грн</p>
+        <div className="flex flex-wrap gap-6">
+          {purchases.map((purchase) => {
+            const course = purchase.course;
+            return (
+              <div
+                key={purchase.id}
+                className="w-full max-w-sm rounded-2xl bg-[#3D3A36] border border-white/8 overflow-hidden flex flex-col"
+              >
+                {/* top strip */}
+                <div className="px-5 py-4 border-b border-white/8">
+                  <Link
+                    href={`/courses/${course.id}/overview`}
+                    className="text-base font-semibold text-white hover:text-[#FDAB04] transition-colors line-clamp-2"
+                  >
+                    {course.title}
+                  </Link>
+                  {course.organization && (
+                    <p className="text-xs text-white/40 mt-1">{course.organization.full_name}</p>
                   )}
                 </div>
-                <div className="text-right text-sm">
-                  <p className="text-green-700 font-medium">Підтверджено ✓</p>
-                  <p className="text-gray-500 mt-1">
-                    Початок: {purchase.course.startDate?.toLocaleDateString("uk-UA")}
-                  </p>
-                  <p className="text-gray-500">
-                    Кінець: {purchase.course.endDate?.toLocaleDateString("uk-UA")}
-                  </p>
+
+                {/* meta */}
+                <div className="px-5 py-3 flex flex-wrap gap-2">
+                  {course.category && (
+                    <span className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-white/6 border border-white/10 text-white/60">
+                      <Tag size={11} className="text-[#FDAB04]" />
+                      {course.category.name}
+                    </span>
+                  )}
+                  {course.city && (
+                    <span className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-white/6 border border-white/10 text-white/60">
+                      <MapPin size={11} className="text-[#FDAB04]" />
+                      {course.city.name}
+                    </span>
+                  )}
+                  {course.level && (
+                    <span className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-white/6 border border-white/10 text-white/60">
+                      <Users size={11} className="text-[#FDAB04]" />
+                      {course.level.name}
+                    </span>
+                  )}
+                </div>
+
+                {/* dates + price */}
+                <div className="px-5 py-3 flex items-center justify-between border-t border-white/8 mt-auto">
+                  <div className="flex items-center gap-1.5 text-xs text-white/50">
+                    <Calendar size={12} className="text-[#FDAB04]" />
+                    <span>
+                      {course.startDate?.toLocaleDateString("uk-UA")} — {course.endDate?.toLocaleDateString("uk-UA")}
+                    </span>
+                  </div>
+                  {course.price !== null && (
+                    <span className="text-sm font-semibold text-[#FDAB04]">{course.price} грн</span>
+                  )}
+                </div>
+
+                {/* confirmed badge */}
+                <div className="px-5 pb-4">
+                  <span className="text-xs text-green-400 font-medium">Підтверджено ✓</span>
                 </div>
               </div>
-            </Link>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

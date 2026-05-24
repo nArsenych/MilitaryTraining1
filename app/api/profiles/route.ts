@@ -18,16 +18,14 @@ export const POST = async (req: NextRequest) => {
       telegram,
       facebook,
       description,
-      edrpou,
       address,
       age,
       isMilitary,
     } = await req.json();
 
+    // edrpou is excluded here — it was set once during select-type and cannot be changed
     const profile = await db.profile.upsert({
-      where: {
-        user_id: session.userId,
-      },
+      where: { user_id: session.userId },
       create: {
         full_name,
         phone_number,
@@ -36,7 +34,6 @@ export const POST = async (req: NextRequest) => {
         telegram,
         facebook,
         description,
-        edrpou,
         address,
         age,
         isMilitary,
@@ -50,7 +47,6 @@ export const POST = async (req: NextRequest) => {
         telegram,
         facebook,
         description,
-        edrpou,
         address,
         age,
         isMilitary,

@@ -20,36 +20,38 @@ interface ReviewsListProps {
 const ReviewsList = ({ reviews, avgRating, count }: ReviewsListProps) => {
   if (count === 0) {
     return (
-      <div className="text-gray-400 text-sm py-4">
-        Поки немає відгуків
-      </div>
+      <p className="text-white/30 text-sm py-4">Поки немає відгуків</p>
     );
   }
 
   return (
-    <div>
-      <div className="flex items-center gap-3 mb-4">
-        <StarRating rating={Math.round(avgRating)} readonly size={22} />
-        <span className="text-lg font-semibold">{avgRating.toFixed(1)}</span>
-        <span className="text-sm text-gray-400">({count} {count === 1 ? "відгук" : count < 5 ? "відгуки" : "відгуків"})</span>
+    <div className="flex flex-col gap-4">
+      {/* summary */}
+      <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/5 border border-white/8 w-fit">
+        <StarRating rating={Math.round(avgRating)} readonly size={18} />
+        <span className="text-white font-semibold">{avgRating.toFixed(1)}</span>
+        <span className="text-white/40 text-xs">
+          ({count} {count === 1 ? "відгук" : count < 5 ? "відгуки" : "відгуків"})
+        </span>
       </div>
 
-      <div className="space-y-3">
+      {/* list */}
+      <div className="flex flex-col gap-3">
         {reviews.map((review) => (
-          <div key={review.id} className="bg-gray-50 rounded-lg p-3">
-            <div className="flex items-center justify-between mb-1">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">
+          <div key={review.id} className="rounded-xl bg-[#3D3A36] border border-white/8 px-4 py-3">
+            <div className="flex items-center justify-between mb-1.5">
+              <div className="flex items-center gap-2.5">
+                <span className="text-sm font-medium text-white">
                   {review.profile.full_name || "Користувач"}
                 </span>
-                <StarRating rating={review.rating} readonly size={14} />
+                <StarRating rating={review.rating} readonly size={13} />
               </div>
-              <span className="text-xs text-gray-400">
+              <span className="text-[11px] text-white/30">
                 {new Date(review.createdAt).toLocaleDateString("uk-UA")}
               </span>
             </div>
             {review.comment && (
-              <p className="text-sm text-gray-700 mt-1">{review.comment}</p>
+              <p className="text-sm text-white/60 leading-relaxed mt-1">{review.comment}</p>
             )}
           </div>
         ))}

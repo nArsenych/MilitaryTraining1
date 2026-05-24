@@ -22,11 +22,9 @@ const CourseDetailsLayout = async ({
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <div className="flex-1 flex">
-        <CourseSideBar course={course} studentId={session?.userId || null} />
-        <div className="flex-1 bg-[#4E4C4B] min-h-screen">{children}</div>
-      </div>
+    <div className="min-h-screen flex">
+      <CourseSideBar course={course} studentId={session?.userId || null} />
+      <div className="flex-1 bg-[#302E2B]">{children}</div>
     </div>
   );
 };

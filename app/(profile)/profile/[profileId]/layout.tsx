@@ -21,7 +21,7 @@ const ProfileDetailsLayout = async ({
   return (
     <div className="min-h-screen flex flex-col">
       <div className="flex-1 flex">
-        <div className="flex-1 bg-[#4E4C4B] min-h-screen">{children}</div>
+        <div className="flex-1 bg-[#302E2B] min-h-screen">{children}</div>
       </div>
     </div>
   );
