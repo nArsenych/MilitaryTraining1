@@ -10,16 +10,20 @@ const MyCoursesLayout = async ({ children }: { children: React.ReactNode }) => {
     return redirect("/sign-in");
   }
 
-  const profile = await db.profile.findUnique({
+  // Only client profiles have access to my-courses
+  const clientProfile = await db.clientProfile.findUnique({
     where: { user_id: session.userId },
   });
 
-  if (!profile) {
+  if (!clientProfile) {
+    // If the user is an organization, redirect to instructor area
+    const orgProfile = await db.organizationProfile.findUnique({
+      where: { user_id: session.userId },
+    });
+    if (orgProfile) {
+      return redirect("/instructor/courses");
+    }
     return redirect("/select-type");
-  }
-
-  if (profile.isOrganization) {
-    return redirect("/instructor/courses");
   }
 
   return (

@@ -10,13 +10,13 @@ export async function DELETE(
     const session = await getSession();
     if (!session) return new NextResponse("Unauthorized", { status: 401 });
 
-    const userProfile = await db.profile.findUnique({ where: { user_id: session.userId } });
-    if (!userProfile) return new NextResponse("Profile not found", { status: 404 });
+    const clientProfile = await db.clientProfile.findUnique({ where: { user_id: session.userId } });
+    if (!clientProfile) return new NextResponse("Profile not found", { status: 404 });
 
     const { courseId } = await params;
 
     const purchase = await db.purchase.findUnique({
-      where: { customerId_courseId: { customerId: userProfile.id, courseId } },
+      where: { customerId_courseId: { customerId: clientProfile.id, courseId } },
       select: { confirmed: true },
     });
 
@@ -31,7 +31,7 @@ export async function DELETE(
 
     await db.purchase.delete({
       where: {
-        customerId_courseId: { customerId: userProfile.id, courseId },
+        customerId_courseId: { customerId: clientProfile.id, courseId },
       },
     });
 
@@ -53,18 +53,20 @@ export async function POST(
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const userProfile = await db.profile.findUnique({
-      where: {
-        user_id: session.userId,
-      },
+    // Only client profiles can enroll — organizations cannot
+    const clientProfile = await db.clientProfile.findUnique({
+      where: { user_id: session.userId },
     });
 
-    if (!userProfile) {
+    if (!clientProfile) {
+      // Check if they are an organization (to give a more informative error)
+      const orgProfile = await db.organizationProfile.findUnique({
+        where: { user_id: session.userId },
+      });
+      if (orgProfile) {
+        return new NextResponse("Organizations cannot enroll in courses", { status: 403 });
+      }
       return new NextResponse("Profile not found", { status: 404 });
-    }
-
-    if (userProfile.isOrganization) {
-      return new NextResponse("Organizations cannot enroll in courses", { status: 403 });
     }
 
     const { courseId } = await params;
@@ -86,7 +88,7 @@ export async function POST(
     const existingPurchase = await db.purchase.findUnique({
       where: {
         customerId_courseId: {
-          customerId: userProfile.id,
+          customerId: clientProfile.id,
           courseId: courseId,
         },
       },
@@ -99,7 +101,7 @@ export async function POST(
     const purchase = await db.purchase.create({
       data: {
         courseId: course.id,
-        customerId: userProfile.id,
+        customerId: clientProfile.id,
         organizationId: course.organizationId,
       },
     });

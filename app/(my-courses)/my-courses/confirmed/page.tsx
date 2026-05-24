@@ -10,16 +10,16 @@ const ConfirmedCourses = async () => {
   const session = await getSession();
   if (!session) return redirect("/sign-in");
 
-  const profile = await db.profile.findUnique({
+  const clientProfile = await db.clientProfile.findUnique({
     where: { user_id: session.userId },
   });
-  if (!profile) return redirect("/select-type");
+  if (!clientProfile) return redirect("/select-type");
 
   const now = new Date();
 
   const purchases = await db.purchase.findMany({
     where: {
-      customerId: profile.id,
+      customerId: clientProfile.id,
       confirmed: true,
       course: {
         endDate: { gt: now },

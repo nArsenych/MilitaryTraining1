@@ -7,7 +7,7 @@ interface Review {
   createdAt: string;
   profile: {
     full_name: string | null;
-    isOrganization: boolean;
+    isOrganization?: boolean;
   };
 }
 

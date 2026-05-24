@@ -1,10 +1,10 @@
 "use client";
 
-import { Course, Purchase, Profile } from "@prisma/client";
+import { Course, Purchase, ClientProfile } from "@prisma/client";
 
 type CourseWithEnrollments = Course & {
   purchases: (Purchase & {
-    customer: Profile;
+    student: ClientProfile;
   })[];
 };
 
@@ -26,12 +26,12 @@ const EnrollmentsList = ({ courses }: EnrollmentsListProps) => {
             {course.purchases.length > 0 ? (
               course.purchases.map((purchase) => (
                 <div key={purchase.id} className="mt-2 p-2 bg-gray-50 rounded">
-                  <p className="font-medium">{purchase.customer.full_name}</p>
+                  <p className="font-medium">{purchase.student.full_name}</p>
                   <p className="text-sm text-gray-600">
                     Enrolled on: {new Date(purchase.createdAt).toLocaleDateString()}
                   </p>
                   <p className="text-sm text-gray-600">
-                    Contact: {purchase.customer.phone_number || "No phone number provided"}
+                    Contact: {purchase.student.phone_number || "No phone number provided"}
                   </p>
                 </div>
               ))

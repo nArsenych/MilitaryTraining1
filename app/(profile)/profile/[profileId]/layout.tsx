@@ -10,12 +10,18 @@ const ProfileDetailsLayout = async ({
 }) => {
   const { profileId } = await params;
 
-  const profile = await db.profile.findUnique({
+  // Try clientProfile first, then organizationProfile
+  const clientProfile = await db.clientProfile.findUnique({
     where: { id: profileId },
   });
 
-  if (!profile) {
-    return redirect("/");
+  if (!clientProfile) {
+    const orgProfile = await db.organizationProfile.findUnique({
+      where: { id: profileId },
+    });
+    if (!orgProfile) {
+      return redirect("/");
+    }
   }
 
   return (

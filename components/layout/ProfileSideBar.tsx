@@ -1,17 +1,18 @@
 "use client";
 
 import { useAuth } from "@/components/providers/AuthProvider";
-import { Profile } from "@prisma/client";
+import { ClientProfile, OrganizationProfile } from "@prisma/client";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { LogOut, Home, Eye, UserCog, BookOpen, KeyRound } from "lucide-react";
 
 interface ProfileSidebarProps {
-  profile: Profile;
+  profile: ClientProfile | OrganizationProfile;
+  isOrganization: boolean;
 }
 
-const ProfileSidebar = ({ profile }: ProfileSidebarProps) => {
+const ProfileSidebar = ({ profile, isOrganization }: ProfileSidebarProps) => {
   const router = useRouter();
   const pathname = usePathname();
   const { logout } = useAuth();
@@ -25,7 +26,7 @@ const ProfileSidebar = ({ profile }: ProfileSidebarProps) => {
     { href: "/users/profiles",               label: "Вигляд профілю",      icon: Eye },
     { href: `/users/profiles/${profile.id}`, label: "Редагування профілю", icon: UserCog },
     { href: "/users/change-credentials",      label: "Пароль / Email",       icon: KeyRound },
-    ...(!profile.isOrganization
+    ...(!isOrganization
       ? [{ href: "/my-courses", label: "Мої курси", icon: BookOpen }]
       : []),
   ];

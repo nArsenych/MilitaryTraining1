@@ -3,19 +3,15 @@ import { db } from "@/lib/db";
 
 export async function getOrganizationStatus() {
   const session = await getSession();
-  
+
   if (!session) {
     return false;
   }
 
-  const profile = await db.profile.findUnique({
-    where: {
-      user_id: session.userId
-    },
-    select: {
-      isOrganization: true
-    }
+  const orgProfile = await db.organizationProfile.findUnique({
+    where: { user_id: session.userId },
+    select: { id: true },
   });
 
-  return profile?.isOrganization || false;
+  return !!orgProfile;
 }

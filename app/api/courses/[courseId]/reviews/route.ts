@@ -13,7 +13,7 @@ export async function GET(
       where: { courseId },
       include: {
         profile: {
-          select: { full_name: true, isOrganization: true },
+          select: { full_name: true },
         },
       },
       orderBy: { createdAt: "desc" },
@@ -24,7 +24,14 @@ export async function GET(
         ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
         : 0;
 
-    return NextResponse.json({ reviews, avgRating, count: reviews.length });
+    // Normalize shape for frontend compatibility: add isOrganization: false
+    // since only ClientProfiles can write reviews
+    const normalizedReviews = reviews.map((r) => ({
+      ...r,
+      profile: { ...r.profile, isOrganization: false },
+    }));
+
+    return NextResponse.json({ reviews: normalizedReviews, avgRating, count: reviews.length });
   } catch (error) {
     console.error("[REVIEWS_GET]", error);
     return new NextResponse("Internal Error", { status: 500 });
@@ -43,18 +50,19 @@ export async function POST(
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const profile = await db.profile.findUnique({
+    // Only client profiles can leave reviews
+    const clientProfile = await db.clientProfile.findUnique({
       where: { user_id: session.userId },
     });
 
-    if (!profile) {
+    if (!clientProfile) {
       return new NextResponse("Profile not found", { status: 404 });
     }
 
     // Перевірка: чи є підтверджений запис
     const confirmedPurchase = await db.purchase.findFirst({
       where: {
-        customerId: profile.id,
+        customerId: clientProfile.id,
         courseId,
         confirmed: true,
       },
@@ -80,7 +88,7 @@ export async function POST(
     const existingReview = await db.review.findUnique({
       where: {
         profileId_courseId: {
-          profileId: profile.id,
+          profileId: clientProfile.id,
           courseId,
         },
       },
@@ -99,7 +107,7 @@ export async function POST(
         rating,
         comment: comment || null,
         courseId,
-        profileId: profile.id,
+        profileId: clientProfile.id,
       },
     });
 

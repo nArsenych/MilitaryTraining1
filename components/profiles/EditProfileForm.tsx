@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Profile } from "@prisma/client";
+import { ClientProfile, OrganizationProfile } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,7 +12,7 @@ import { Loader2, Sparkles, KeyRound, Lock, Trash2, Eye, EyeOff } from "lucide-r
 import Link from "next/link";
 
 interface EditProfileFormProps {
-  profile: Profile;
+  profile: ClientProfile | OrganizationProfile;
   isOrganization: boolean;
 }
 
@@ -24,14 +24,14 @@ const EditProfileForm = ({ profile, isOrganization }: EditProfileFormProps) => {
 
   const [fullName, setFullName] = useState(profile.full_name || "");
   const [phoneNumber, setPhoneNumber] = useState(profile.phone_number || "");
-  const [contactEmail, setContactEmail] = useState((profile as any).contact_email || "");
+  const [contactEmail, setContactEmail] = useState((profile as OrganizationProfile).contact_email || "");
   const [instagram, setInstagram] = useState(profile.instagram || "");
   const [telegram, setTelegram] = useState(profile.telegram || "");
   const [facebook, setFacebook] = useState(profile.facebook || "");
   const [description, setDescription] = useState(profile.description || "");
-  const [address, setAddress] = useState((profile as any).address || "");
-  const [age, setAge] = useState(profile.age?.toString() || "");
-  const [isMilitary, setIsMilitary] = useState(profile.isMilitary || false);
+  const [address, setAddress] = useState((profile as OrganizationProfile).address || "");
+  const [age, setAge] = useState((profile as ClientProfile).age?.toString() || "");
+  const [isMilitary, setIsMilitary] = useState((profile as ClientProfile).isMilitary || false);
   const phoneRegex = /^\+?[\d\s\-()()]{7,20}$/;
   const [isLoading, setIsLoading] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -40,7 +40,7 @@ const EditProfileForm = ({ profile, isOrganization }: EditProfileFormProps) => {
   const [showDeletePw, setShowDeletePw] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const edrpou = (profile as any).edrpou as string | null;
+  const edrpou = (profile as OrganizationProfile).edrpou as string | null | undefined;
 
   const handleDelete = async (e: React.FormEvent) => {
     e.preventDefault();

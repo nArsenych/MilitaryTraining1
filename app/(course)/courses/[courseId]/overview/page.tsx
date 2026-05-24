@@ -37,7 +37,7 @@ const CourseOverview = async ({ params }: { params: Promise<{ courseId: string }
   const reviews = await db.review.findMany({
     where: { courseId },
     include: {
-      profile: { select: { full_name: true, isOrganization: true } },
+      profile: { select: { full_name: true } },
     },
     orderBy: { createdAt: "desc" },
   });
@@ -47,9 +47,15 @@ const CourseOverview = async ({ params }: { params: Promise<{ courseId: string }
       ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
       : 0;
 
+  // Normalize reviews shape for frontend — reviews can only be from ClientProfile
+  const normalizedReviews = reviews.map((r) => ({
+    ...r,
+    profile: { ...r.profile, isOrganization: false },
+  }));
+
   let canReview = false;
   if (session) {
-    const currentProfile = await db.profile.findUnique({ where: { user_id: session.userId } });
+    const currentProfile = await db.clientProfile.findUnique({ where: { user_id: session.userId } });
     if (currentProfile) {
       const confirmedPurchase = await db.purchase.findFirst({
         where: { customerId: currentProfile.id, courseId, confirmed: true },
@@ -64,7 +70,7 @@ const CourseOverview = async ({ params }: { params: Promise<{ courseId: string }
   }
 
   const hasReviewed = session && !canReview && await (async () => {
-    const profile = await db.profile.findUnique({ where: { user_id: session.userId } });
+    const profile = await db.clientProfile.findUnique({ where: { user_id: session.userId } });
     if (!profile) return false;
     const review = await db.review.findUnique({
       where: { profileId_courseId: { profileId: profile.id, courseId } },
@@ -160,7 +166,7 @@ const CourseOverview = async ({ params }: { params: Promise<{ courseId: string }
         {/* tabs: відгуки / історія */}
         <CourseDetailTabs
           courseId={courseId}
-          reviews={reviews.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() }))}
+          reviews={normalizedReviews.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() }))}
           avgRating={avgRating}
           canReview={canReview}
           hasReviewed={!!hasReviewed}

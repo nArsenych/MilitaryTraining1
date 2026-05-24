@@ -18,26 +18,31 @@ const ProfileBasics = async ({ params }: { params: Promise<{ profileId: string }
     return redirect("/sign-in");
   }
 
-  const [profile] = await Promise.all([
-    db.profile.findUnique({
-      where: {
-        id: profileId,
-        user_id: session.userId,
-      },
-    })
-  ]);
+  // Try organizationProfile first (to route correctly on not-found)
+  const orgProfile = await db.organizationProfile.findUnique({
+    where: { id: profileId, user_id: session.userId },
+  });
 
-  if (!profile) {
+  if (orgProfile) {
+    return (
+      <div className="px-10">
+        <EditProfileForm profile={orgProfile} isOrganization={true} />
+      </div>
+    );
+  }
+
+  const clientProfile = await db.clientProfile.findUnique({
+    where: { id: profileId, user_id: session.userId },
+  });
+
+  if (!clientProfile) {
     return redirect("/instructor/courses");
   }
 
   const isOrganization = await getOrganizationStatus();
   return (
     <div className="px-10">
-      <EditProfileForm 
-        profile={profile} 
-        isOrganization={isOrganization} 
-      />
+      <EditProfileForm profile={clientProfile} isOrganization={isOrganization} />
     </div>
   );
 };

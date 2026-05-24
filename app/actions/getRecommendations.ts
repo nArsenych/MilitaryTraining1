@@ -11,14 +11,14 @@ export async function getRecommendedCourses() {
   };
 
   if (session) {
-    const profile = await db.profile.findUnique({
+    const clientProfile = await db.clientProfile.findUnique({
       where: { user_id: session.userId },
     });
 
-    if (profile) {
+    if (clientProfile) {
       // Знаходимо курси, на які записувався користувач
       const userPurchases = await db.purchase.findMany({
-        where: { customerId: profile.id },
+        where: { customerId: clientProfile.id },
         include: {
           course: {
             select: {

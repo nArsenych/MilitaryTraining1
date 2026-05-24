@@ -10,12 +10,12 @@ export const POST = async (req: NextRequest) => {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const profile = await db.profile.findUnique({
+    const orgProfile = await db.organizationProfile.findUnique({
       where: { user_id: session.userId },
     });
 
-    if (!profile) {
-      return new NextResponse("Profile not found", { status: 404 });
+    if (!orgProfile) {
+      return new NextResponse("Organization profile not found", { status: 404 });
     }
 
     const { title, categoryId } = await req.json();
@@ -24,7 +24,7 @@ export const POST = async (req: NextRequest) => {
       data: {
         title,
         categoryId,
-        organizationId: profile.id
+        organizationId: orgProfile.id
       }
     });
 

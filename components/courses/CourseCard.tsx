@@ -15,7 +15,7 @@ const CourseCard = async ({ course }: { course: Course }) => {
     city = await db.city.findUnique({ where: { id: course.cityId } });
   }
 
-  const profile = await db.profile.findUnique({
+  const profile = await db.organizationProfile.findUnique({
     where: { id: course.organizationId },
   });
 

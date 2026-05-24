@@ -12,11 +12,11 @@ const CoursesPage = async () => {
   const session = await getSession();
   if (!session) return redirect("/sign-in");
 
-  const profile = await db.profile.findUnique({ where: { user_id: session.userId } });
-  if (!profile) return redirect("/select-type");
+  const orgProfile = await db.organizationProfile.findUnique({ where: { user_id: session.userId } });
+  if (!orgProfile) return redirect("/select-type");
 
   const courses = await db.course.findMany({
-    where: { organizationId: profile.id },
+    where: { organizationId: orgProfile.id },
     include: {
       category: true,
       city: true,

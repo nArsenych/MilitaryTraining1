@@ -14,16 +14,16 @@ export const POST = async (
       return new Response("Unauthorized", { status: 401 });
     }
 
-    const profile = await db.profile.findUnique({
+    const orgProfile = await db.organizationProfile.findUnique({
       where: { user_id: session.userId },
     });
 
-    if (!profile) {
-      return new Response("Profile not found", { status: 404 });
+    if (!orgProfile) {
+      return new Response("Organization profile not found", { status: 404 });
     }
 
     const course = await db.course.findUnique({
-      where: { id: courseId, organizationId: profile.id },
+      where: { id: courseId, organizationId: orgProfile.id },
     });
 
     if (!course) {
@@ -43,7 +43,7 @@ export const POST = async (
     }
 
     const publishedCourse = await db.course.update({
-      where: { id: courseId, organizationId: profile.id },
+      where: { id: courseId, organizationId: orgProfile.id },
       data: { isPublished: true },
     });
 

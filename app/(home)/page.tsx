@@ -7,12 +7,12 @@ import RecommendedCourses from "@/components/courses/RecommendedCourses";
 export const dynamic = "force-dynamic";
 
 async function getOrganizationName(organizationId: string) {
-  const profile = await db.profile.findUnique({
+  const profile = await db.organizationProfile.findUnique({
     where: {
       id: organizationId,
     },
   });
-  
+
   return profile?.full_name || "Невідома організація";
 }
 

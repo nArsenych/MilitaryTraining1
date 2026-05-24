@@ -11,7 +11,10 @@
       "Bash(npx tsc *)",
       "Bash(xargs grep -l \"CourseRun\\\\|courseRun\\\\|\\\\.runs\")",
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\arsen\\\\MilitaryTraining-jwt-auth\" -Recurse -Directory -ErrorAction SilentlyContinue)",
-      "Bash(Select-Object -ExpandProperty FullName)"
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(grep -rn \"import.*\\\\bProfile\\\\b.*from.*@prisma/client\" --include=\"*.ts\" --include=\"*.tsx\")",
+      "Bash(grep -rn \"db\\\\.profile\\\\b\" --include=\"*.ts\" --include=\"*.tsx\")",
+      "Bash(grep -rn \"isOrganization.*true\\\\|isOrganization.*false\\\\|isOrganization.*Boolean\" --include=\"*.prisma\")"
     ]
   }
 }

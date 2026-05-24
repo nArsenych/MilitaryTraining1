@@ -6,10 +6,9 @@ export async function GET(
   { params }: { params: Promise<{ organizationId: string }> }
 ) {
   try {
-    
     const { organizationId } = await params;
 
-    const profile = await db.profile.findUnique({
+    const profile = await db.organizationProfile.findUnique({
       where: {
         id: organizationId,
       },

@@ -10,13 +10,13 @@ export async function GET() {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const organizationProfile = await db.profile.findUnique({
+    const organizationProfile = await db.organizationProfile.findUnique({
       where: {
         user_id: session.userId,
       },
     });
 
-    if (!organizationProfile || !organizationProfile.isOrganization) {
+    if (!organizationProfile) {
       return new NextResponse("Not authorized as organization", { status: 403 });
     }
 

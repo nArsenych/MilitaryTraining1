@@ -13,18 +13,18 @@ interface PageProps {
 export const dynamic = "force-dynamic";
 
 const CourseBasics = async ({ params }: PageProps) => {
-  const { courseId } = await params; 
+  const { courseId } = await params;
   const session = await getSession();
 
   if (!session) {
     return redirect("/sign-in");
   }
 
-  const profile = await db.profile.findUnique({
+  const orgProfile = await db.organizationProfile.findUnique({
     where: { user_id: session.userId },
   });
 
-  if (!profile) {
+  if (!orgProfile) {
     return redirect("/select-type");
   }
 
@@ -32,7 +32,7 @@ const CourseBasics = async ({ params }: PageProps) => {
     db.course.findUnique({
       where: {
         id: courseId,
-        organizationId: profile.id,
+        organizationId: orgProfile.id,
       },
     }),
     db.category.findMany({

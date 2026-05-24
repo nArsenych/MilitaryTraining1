@@ -10,7 +10,7 @@ interface Review {
   rating: number
   comment: string | null
   createdAt: string
-  profile: { full_name: string | null; isOrganization: boolean }
+  profile: { full_name: string | null; isOrganization?: boolean }
 }
 
 interface CourseRun {

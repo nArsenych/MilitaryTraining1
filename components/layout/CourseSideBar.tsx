@@ -10,14 +10,14 @@ interface CourseSideBarProps {
 }
 
 const CourseSideBar = async ({ course, studentId }: CourseSideBarProps) => {
-  let userProfile = null;
+  let clientProfile = null;
   let existingPurchase = null;
 
   if (studentId) {
-    userProfile = await db.profile.findUnique({ where: { user_id: studentId } });
-    if (userProfile) {
+    clientProfile = await db.clientProfile.findUnique({ where: { user_id: studentId } });
+    if (clientProfile) {
       existingPurchase = await db.purchase.findUnique({
-        where: { customerId_courseId: { customerId: userProfile.id, courseId: course.id } },
+        where: { customerId_courseId: { customerId: clientProfile.id, courseId: course.id } },
       });
     }
   }
@@ -62,7 +62,7 @@ const CourseSideBar = async ({ course, studentId }: CourseSideBarProps) => {
         </Link>
       )}
 
-      {studentId && userProfile && !userProfile.isOrganization && !existingPurchase && (
+      {studentId && clientProfile && !existingPurchase && (
         <div className="mx-2">
           <EnrollButton
             courseId={course.id}

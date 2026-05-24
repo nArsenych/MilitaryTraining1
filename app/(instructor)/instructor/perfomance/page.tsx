@@ -26,11 +26,11 @@ const CourseEnrollmentsPage: FC = async () => {
   const session = await getSession();
   if (!session) return redirect("/");
 
-  const organizationProfile = await db.profile.findUnique({
+  const organizationProfile = await db.organizationProfile.findUnique({
     where: { user_id: session.userId },
   });
 
-  if (!organizationProfile || !organizationProfile.isOrganization) return redirect("/");
+  if (!organizationProfile) return redirect("/");
 
   const coursesWithEnrollments = await db.course.findMany({
     where: { organizationId: organizationProfile.id },
