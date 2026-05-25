@@ -41,6 +41,12 @@ export default function SignUpPage() {
         return;
       }
 
+      if (data.requiresVerification) {
+        toast.success("Код підтвердження надіслано на вашу пошту");
+        router.push(`/verify-email?email=${encodeURIComponent(email)}`);
+        return;
+      }
+
       await refreshAuth();
       toast.success("Реєстрація успішна!");
       router.push("/select-type");

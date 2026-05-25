@@ -1,7 +1,11 @@
 import { db } from "@/lib/db";
-import { signToken, setAuthCookie } from "@/lib/auth";
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
+import { sendVerificationEmail } from "@/lib/email";
+
+function generateCode(): string {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
 
 export async function POST(req: Request) {
   try {
@@ -21,11 +25,18 @@ export async function POST(req: Request) {
       );
     }
 
-    const existingUser = await db.user.findUnique({
-      where: { email },
-    });
+    const existingUser = await db.user.findUnique({ where: { email } });
 
     if (existingUser) {
+      if (!existingUser.emailVerified) {
+        const code = generateCode();
+        await db.user.update({ where: { email }, data: { verificationToken: code } });
+        await sendVerificationEmail(email, code);
+        return NextResponse.json(
+          { requiresVerification: true, message: "Новий код надіслано" },
+          { status: 200 }
+        );
+      }
       return NextResponse.json(
         { error: "Користувач з таким email вже існує" },
         { status: 409 }
@@ -33,27 +44,17 @@ export async function POST(req: Request) {
     }
 
     const passwordHash = await bcrypt.hash(password, 12);
+    const code = generateCode();
 
-    const user = await db.user.create({
-      data: {
-        email,
-        passwordHash,
-        name: name || null,
-      },
+    await db.user.create({
+      data: { email, passwordHash, name: name || null, emailVerified: false, verificationToken: code },
     });
 
-    const token = await signToken({ userId: user.id, email: user.email });
-    await setAuthCookie(token);
+    await sendVerificationEmail(email, code);
 
-    return NextResponse.json(
-      { user: { id: user.id, email: user.email, name: user.name } },
-      { status: 201 }
-    );
+    return NextResponse.json({ requiresVerification: true }, { status: 201 });
   } catch (error) {
     console.error("[REGISTER]", error);
-    return NextResponse.json(
-      { error: "Внутрішня помилка серверу" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Внутрішня помилка серверу" }, { status: 500 });
   }
 }

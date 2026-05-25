@@ -27,7 +27,7 @@ const CourseCard = async ({ course }: { course: Course }) => {
   return (
     <Link
       href={`/courses/${course.id}/overview`}
-      className="group flex flex-col w-[320px] rounded-2xl overflow-hidden bg-[#3D3A36] border border-white/10 hover:border-[#FDAB04]/50 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/40"
+      className="group flex flex-col w-full sm:w-[320px] rounded-2xl overflow-hidden bg-[#3D3A36] border border-white/10 hover:border-[#FDAB04]/50 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/40"
     >
       {/* image */}
       <div className="relative overflow-hidden">
@@ -36,7 +36,7 @@ const CourseCard = async ({ course }: { course: Course }) => {
           alt={course.title}
           width={320}
           height={180}
-          className="w-[320px] h-[180px] object-cover transition-transform duration-500 group-hover:scale-105"
+          className="w-full h-[180px] object-cover transition-transform duration-500 group-hover:scale-105"
         />
         {/* category badge */}
         {category && (

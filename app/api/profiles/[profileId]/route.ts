@@ -64,6 +64,7 @@ export const PATCH = async (
         description,
         age,
         isMilitary,
+        ...(isMilitary === false ? { isMilitaryVerified: false, militaryVerificationCode: null } : {}),
       },
     });
 
@@ -98,7 +99,7 @@ export const DELETE = async (
 
     const passwordValid = await bcrypt.compare(password, user.passwordHash);
     if (!passwordValid) {
-      return NextResponse.json({ error: "Невірний пароль" }, { status: 400 });
+      return NextResponse.json({ error: "Неправильний пароль" }, { status: 400 });
     }
 
     // Try organization profile first

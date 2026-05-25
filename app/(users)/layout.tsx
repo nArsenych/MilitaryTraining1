@@ -19,7 +19,7 @@ const Instructorlayout = async ({children}: {children: React.ReactNode}) => {
     return (
       <div className="min-h-screen flex">
         <ProfileSidebar profile={clientProfile} isOrganization={false} />
-        <div className="flex-1 bg-[#4E4C4B]">{children}</div>
+        <div className="flex-1 bg-[#4E4C4B] pb-16 md:pb-0">{children}</div>
       </div>
     );
   }
@@ -35,7 +35,7 @@ const Instructorlayout = async ({children}: {children: React.ReactNode}) => {
   return (
     <div className="min-h-screen flex">
       <ProfileSidebar profile={orgProfile} isOrganization={true} />
-      <div className="flex-1 bg-[#4E4C4B]">{children}</div>
+      <div className="flex-1 bg-[#4E4C4B] pb-16 md:pb-0">{children}</div>
     </div>
   );
 };

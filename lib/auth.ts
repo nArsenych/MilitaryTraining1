@@ -11,6 +11,7 @@ const COOKIE_NAME = "auth-token";
 export interface SessionPayload {
   userId: string;
   email: string;
+  role?: string;
 }
 
 export async function signToken(payload: SessionPayload): Promise<string> {
@@ -65,6 +66,30 @@ export async function getUserById(userId: string) {
       id: true,
       email: true,
       name: true,
+      role: true,
+      isBlocked: true,
+      blockExpiry: true,
     },
   });
+}
+
+export async function isAdmin(userId: string): Promise<boolean> {
+  const user = await db.user.findUnique({
+    where: { id: userId },
+    select: { role: true },
+  });
+  return user?.role === "ADMIN";
+}
+
+export async function isUserBlocked(userId: string): Promise<boolean> {
+  const user = await db.user.findUnique({
+    where: { id: userId },
+    select: { isBlocked: true, blockExpiry: true },
+  });
+  if (!user || !user.isBlocked) return false;
+  if (user.blockExpiry && new Date() > user.blockExpiry) {
+    await db.user.update({ where: { id: userId }, data: { isBlocked: false, blockExpiry: null } });
+    return false;
+  }
+  return true;
 }

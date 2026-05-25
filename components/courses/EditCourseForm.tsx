@@ -67,6 +67,9 @@ interface EditCourseFormProps {
   isCompleted: boolean;
 }
 
+const today = new Date();
+today.setHours(0, 0, 0, 0);
+
 const EditCourseForm = ({ course, decryptedLocation = "", categories, levels, cities, isCompleted }: EditCourseFormProps) => {
   const router = useRouter();
 
@@ -88,18 +91,18 @@ const EditCourseForm = ({ course, decryptedLocation = "", categories, levels, ci
     },
   })
 
+  const watchedStartDate = form.watch("startDate");
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     const start = values.startDate ? new Date(values.startDate) : null;
     const end = values.endDate ? new Date(values.endDate) : null;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
 
     if (start && start < today) {
       toast.error("Дата початку не може бути в минулому");
       return;
     }
-    if (start && end && start >= end) {
-      toast.error("Дата початку має бути раніше дати закінчення");
+    if (start && end && start > end) {
+      toast.error("Дата закінчення не може бути меншою за дату початку");
       return;
     }
 
@@ -263,6 +266,7 @@ const EditCourseForm = ({ course, decryptedLocation = "", categories, levels, ci
                     <DatePicker
                       value={field.value ? new Date(field.value) : undefined}
                       onChange={field.onChange}
+                      minDate={today}
                     />
                   </FormControl>
                   <FormMessage />
@@ -282,6 +286,7 @@ const EditCourseForm = ({ course, decryptedLocation = "", categories, levels, ci
                     <DatePicker
                       value={field.value ? new Date(field.value) : undefined}
                       onChange={field.onChange}
+                      minDate={watchedStartDate ? new Date(watchedStartDate) : today}
                     />
                   </FormControl>
                   <FormMessage />

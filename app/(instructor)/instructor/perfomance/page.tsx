@@ -5,7 +5,7 @@ import { FC } from "react";
 import { Button } from "@/components/ui/button";
 import { sendConfirmationEmail } from "@/app/actions/email";
 import { revalidatePath } from "next/cache";
-import { CheckCircle2, Phone, Send, Instagram, Facebook, Shield, Calendar, User } from "lucide-react";
+import { CheckCircle2, Phone, Send, Instagram, Facebook, ShieldCheck, ShieldAlert, Calendar, User } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -48,6 +48,7 @@ const CourseEnrollmentsPage: FC = async () => {
               facebook: true,
               age: true,
               isMilitary: true,
+              isMilitaryVerified: true,
               description: true,
             },
           },
@@ -103,9 +104,15 @@ const CourseEnrollmentsPage: FC = async () => {
                               {purchase.student.full_name || "Без імені"}
                             </span>
                             {purchase.student.isMilitary && (
-                              <span className="inline-flex items-center gap-1 text-[10px] font-semibold bg-blue-500/15 text-blue-400 border border-blue-500/20 px-1.5 py-0.5 rounded-full shrink-0">
-                                <Shield size={9} /> Військовий
-                              </span>
+                              purchase.student.isMilitaryVerified ? (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-semibold bg-green-500/15 text-green-400 border border-green-500/20 px-1.5 py-0.5 rounded-full shrink-0">
+                                  <ShieldCheck size={9} /> Верифікований військовий
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-medium bg-yellow-500/10 text-yellow-400/80 border border-yellow-500/20 px-1.5 py-0.5 rounded-full shrink-0">
+                                  <ShieldAlert size={9} /> Військовий (не верифіковано)
+                                </span>
+                              )
                             )}
                           </div>
                           <div className="flex items-center gap-3 mt-0.5 text-xs text-white/35">

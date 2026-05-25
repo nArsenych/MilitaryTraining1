@@ -15,7 +15,7 @@ const ThreeIcon = () => {
   const pathname = usePathname();
 
   return (
-    <div className="flex justify-center gap-20">
+    <div className="flex flex-wrap justify-center gap-6 sm:gap-20">
       {routes.map(({ icon: Icon, label, path }) => {
         const isActive = pathname.startsWith(path);
         return (
@@ -28,7 +28,7 @@ const ThreeIcon = () => {
                 : "hover:bg-[#F1CDA6]/20"
               }`}
           >
-            <Icon size={100} color="#ebac66" strokeWidth={1.4} />
+            <Icon size={100} color="#ebac66" strokeWidth={1.4} className="max-sm:!w-14 max-sm:!h-14" />
             <span className="mt-2 text-lg font-medium text-[#ebac66]">{label}</span>
           </Link>
         );

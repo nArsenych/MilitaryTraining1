@@ -55,8 +55,8 @@ const CourseActions = ({ courseId, courseTitle, courseEndDate }: CourseActionsPr
       return;
     }
 
-    if (start >= end) {
-      toast.error("Дата початку має бути раніше дати закінчення");
+    if (start > end) {
+      toast.error("Дата закінчення не може бути меншою за дату початку");
       return;
     }
 

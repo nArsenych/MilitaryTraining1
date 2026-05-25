@@ -19,6 +19,7 @@ interface DatePickerProps {
   endYear?: number;
   value?: Date | undefined;
   onChange?: (date: Date | undefined) => void;
+  minDate?: Date;
 }
 
 function normalizeDate(d: Date): Date {
@@ -30,6 +31,7 @@ export function DatePicker({
   endYear = getYear(new Date()) + 100,
   value,
   onChange,
+  minDate,
 }: DatePickerProps) {
   const [date, setDate] = React.useState<Date>(value ? normalizeDate(value) : new Date());
 
@@ -105,6 +107,7 @@ export function DatePicker({
           initialFocus
           month={date}
           onMonthChange={setDate}
+          disabled={minDate ? { before: minDate } : undefined}
         />
       </PopoverContent>
     </Popover>

@@ -29,7 +29,7 @@ const MyCoursesLayout = async ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="min-h-screen flex">
       <MyCoursesSideBar />
-      <div className="flex-1 bg-[#302E2B]">{children}</div>
+      <div className="flex-1 bg-[#302E2B] pb-16 md:pb-0">{children}</div>
     </div>
   );
 };

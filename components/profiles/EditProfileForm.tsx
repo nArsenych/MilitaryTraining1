@@ -8,18 +8,18 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import toast from "react-hot-toast";
 import axios from "axios";
-import { Loader2, Sparkles, KeyRound, Lock, Trash2, Eye, EyeOff } from "lucide-react";
-import Link from "next/link";
+import { Loader2, Sparkles, Lock, Trash2, Eye, EyeOff, ShieldCheck, ShieldAlert, AlertTriangle } from "lucide-react";
 
 interface EditProfileFormProps {
   profile: ClientProfile | OrganizationProfile;
   isOrganization: boolean;
+  userEmail: string;
 }
 
 const inp = "bg-[#272523] border-white/10 text-white placeholder:text-white/30 focus:border-[#FDAB04]/50 transition-colors";
 const lbl = "block text-xs font-semibold mb-1.5 text-white/60 uppercase tracking-wider";
 
-const EditProfileForm = ({ profile, isOrganization }: EditProfileFormProps) => {
+const EditProfileForm = ({ profile, isOrganization, userEmail }: EditProfileFormProps) => {
   const router = useRouter();
 
   const [fullName, setFullName] = useState(profile.full_name || "");
@@ -32,6 +32,14 @@ const EditProfileForm = ({ profile, isOrganization }: EditProfileFormProps) => {
   const [address, setAddress] = useState((profile as OrganizationProfile).address || "");
   const [age, setAge] = useState((profile as ClientProfile).age?.toString() || "");
   const [isMilitary, setIsMilitary] = useState((profile as ClientProfile).isMilitary || false);
+  const [isMilitaryVerified, setIsMilitaryVerified] = useState((profile as ClientProfile).isMilitaryVerified || false);
+  const [milVerifyStep, setMilVerifyStep] = useState<"idle" | "code_sent" | "verified">(
+    (profile as ClientProfile).isMilitaryVerified ? "verified" : "idle"
+  );
+  const [milCode, setMilCode] = useState("");
+  const [milSending, setMilSending] = useState(false);
+  const [milConfirming, setMilConfirming] = useState(false);
+  const isMilEmail = userEmail.endsWith("@mil.gov.ua");
   const phoneRegex = /^\+?[\d\s\-()()]{7,20}$/;
   const [isLoading, setIsLoading] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -41,6 +49,15 @@ const EditProfileForm = ({ profile, isOrganization }: EditProfileFormProps) => {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const edrpou = (profile as OrganizationProfile).edrpou as string | null | undefined;
+
+  const handleMilitaryToggle = (checked: boolean) => {
+    setIsMilitary(checked);
+    if (!checked) {
+      setIsMilitaryVerified(false);
+      setMilVerifyStep("idle");
+      setMilCode("");
+    }
+  };
 
   const handleDelete = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,6 +112,52 @@ const EditProfileForm = ({ profile, isOrganization }: EditProfileFormProps) => {
     }
   };
 
+  const handleSendMilCode = async () => {
+    setMilSending(true);
+    try {
+      const res = await fetch("/api/profile/verify-military", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error || "Помилка надсилання коду");
+        return;
+      }
+      setMilVerifyStep("code_sent");
+      setMilCode("");
+      toast.success("Код надіслано на вашу пошту");
+    } catch {
+      toast.error("Щось пішло не так");
+    } finally {
+      setMilSending(false);
+    }
+  };
+
+  const handleConfirmMilCode = async () => {
+    if (milCode.length !== 6) {
+      toast.error("Введіть 6-значний код");
+      return;
+    }
+    setMilConfirming(true);
+    try {
+      const res = await fetch("/api/profile/verify-military/confirm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: milCode }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error || "Неправильний код");
+        return;
+      }
+      setMilVerifyStep("verified");
+      setIsMilitaryVerified(true);
+      toast.success("Військовий статус верифіковано!");
+    } catch {
+      toast.error("Щось пішло не так");
+    } finally {
+      setMilConfirming(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -138,7 +201,7 @@ const EditProfileForm = ({ profile, isOrganization }: EditProfileFormProps) => {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-4 md:p-6">
       <div className="w-full max-w-4xl">
         <div className="flex items-start justify-between mb-6">
           <h1 className="text-2xl font-bold text-[#ebac66]">
@@ -172,7 +235,7 @@ const EditProfileForm = ({ profile, isOrganization }: EditProfileFormProps) => {
 
           <div className="border-t border-white/8 pt-3 mt-3">
             <h2 className="text-lg font-semibold mb-2 text-[#ebac66]">Способи зв&apos;язку</h2>
-            <div className="flex flex-wrap" style={{ gap: "8px 16px" }}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-3">
               {[
                 { label: "Телефон", value: phoneNumber, setter: setPhoneNumber, placeholder: "+380XXXXXXXXX", type: "text" },
                 { label: "Email для зв'язку", value: contactEmail, setter: setContactEmail, placeholder: "контакт@вашдомен.com", type: "email" },
@@ -180,7 +243,7 @@ const EditProfileForm = ({ profile, isOrganization }: EditProfileFormProps) => {
                 { label: "Telegram", value: telegram, setter: setTelegram, placeholder: "@your_telegram", type: "text" },
                 { label: "Facebook", value: facebook, setter: setFacebook, placeholder: "facebook.com/your_page", type: "text" },
               ].map(({ label, value, setter, placeholder, type }) => (
-                <div key={label} style={{ width: "calc(33% - 11px)" }}>
+                <div key={label}>
                   <label className={lbl}>{label}</label>
                   <Input
                     type={type}
@@ -207,15 +270,94 @@ const EditProfileForm = ({ profile, isOrganization }: EditProfileFormProps) => {
                 <label className={lbl}>Вік</label>
                 <Input type="number" value={age} onChange={(e) => setAge(e.target.value)} placeholder="25" min={14} max={99} className={inp} />
               </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="isMilitary"
-                  checked={isMilitary}
-                  onChange={(e) => setIsMilitary(e.target.checked)}
-                  className="h-4 w-4 accent-[#FDAB04]"
-                />
-                <label htmlFor="isMilitary" className="text-sm font-medium text-white/75">Я військовослужбовець</label>
+              <div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="isMilitary"
+                    checked={isMilitary}
+                    onChange={(e) => handleMilitaryToggle(e.target.checked)}
+                    className="h-4 w-4 accent-[#FDAB04]"
+                  />
+                  <label htmlFor="isMilitary" className="text-sm font-medium text-white/75 flex items-center gap-2">
+                    Я військовослужбовець
+                    {isMilitary && isMilitaryVerified && (
+                      <span className="flex items-center gap-1 text-xs text-green-400 font-semibold">
+                        <ShieldCheck size={13} /> Верифіковано
+                      </span>
+                    )}
+                    {isMilitary && !isMilitaryVerified && (
+                      <span className="flex items-center gap-1 text-xs text-yellow-400/80">
+                        <ShieldAlert size={13} /> Не верифіковано
+                      </span>
+                    )}
+                  </label>
+                </div>
+
+                {isMilitary && (
+                  <div className="mt-3 rounded-xl border border-yellow-500/20 bg-yellow-500/5 p-4 space-y-3">
+                    <div className="flex items-start gap-2 text-sm text-yellow-300/80">
+                      <AlertTriangle size={15} className="mt-0.5 shrink-0" />
+                      <p>
+                        Для підтвердження статусу військовослужбовця необхідна пошта домену{" "}
+                        <span className="font-semibold text-yellow-300">@mil.gov.ua</span>.
+                        {!isMilEmail && " Ваш статус буде збережено як неверифікований."}
+                      </p>
+                    </div>
+
+                    {isMilEmail && milVerifyStep !== "verified" && (
+                      <div className="space-y-2">
+                        {milVerifyStep === "idle" && (
+                          <button
+                            type="button"
+                            onClick={handleSendMilCode}
+                            disabled={milSending}
+                            className="flex items-center gap-1.5 text-sm font-medium text-[#FDAB04] hover:text-[#ebac66] transition-colors disabled:opacity-50"
+                          >
+                            {milSending ? <Loader2 size={13} className="animate-spin" /> : <ShieldCheck size={13} />}
+                            {milSending ? "Надсилання..." : "Верифікувати через пошту"}
+                          </button>
+                        )}
+
+                        {milVerifyStep === "code_sent" && (
+                          <div className="flex items-center gap-2">
+                            <Input
+                              type="text"
+                              inputMode="numeric"
+                              maxLength={6}
+                              value={milCode}
+                              onChange={(e) => setMilCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                              placeholder="Введіть 6-значний код"
+                              className="bg-[#272523] border-white/10 text-white placeholder:text-white/30 focus:border-[#FDAB04]/50 w-48 text-center tracking-widest text-lg font-bold"
+                            />
+                            <button
+                              type="button"
+                              onClick={handleConfirmMilCode}
+                              disabled={milConfirming || milCode.length < 6}
+                              className="px-3 py-2 rounded-lg bg-[#FDAB04] hover:bg-[#ebac66] text-black text-sm font-semibold transition-colors disabled:opacity-50"
+                            >
+                              {milConfirming ? <Loader2 size={14} className="animate-spin" /> : "Підтвердити"}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleSendMilCode}
+                              disabled={milSending}
+                              className="text-xs text-white/40 hover:text-white/60 transition-colors disabled:opacity-40"
+                            >
+                              Надіслати знову
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {milVerifyStep === "verified" && (
+                      <div className="flex items-center gap-1.5 text-sm text-green-400 font-medium">
+                        <ShieldCheck size={14} /> Статус верифіковано
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           )}

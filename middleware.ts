@@ -11,21 +11,27 @@ const publicRoutes = [
   "/sign-up",
   "/all",
   "/search",
+  "/blocked",
+  "/check-email",
+  "/verify-email",
   "/api/auth/login",
   "/api/auth/register",
   "/api/auth/logout",
   "/api/auth/me",
+  "/api/auth/verify-email",
+  "/api/auth/resend-verification",
   "/api/uploadthing",
 ];
 
 function isPublicRoute(pathname: string): boolean {
-  if (pathname.startsWith("/courses")) return true;
   if (publicRoutes.includes(pathname)) return true;
+  if (pathname.startsWith("/courses")) return true;
   if (pathname.startsWith("/categories")) return true;
   if (pathname.startsWith("/cities")) return true;
   if (pathname.startsWith("/organizations")) return true;
+  if (pathname.startsWith("/profile")) return true;
   if (pathname.startsWith("/api/organizations/")) return true;
-  if (pathname.match(/\.\w+$/)) return true; // static files
+  if (pathname.match(/\.\w+$/)) return true;
   if (pathname.startsWith("/_next")) return true;
   return false;
 }

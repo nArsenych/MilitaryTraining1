@@ -1,12 +1,15 @@
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
+import { getSession, isAdmin as checkIsAdmin } from "@/lib/auth";
 import ReadText from "@/components/custom/ReadTwxt";
-import { Phone, Mail, Instagram, Send, Facebook, MapPin, User, Building2 } from "lucide-react";
+import OrganizationComplaintButton from "@/components/profiles/OrganizationComplaintButton";
+import { Phone, Mail, Instagram, Send, Facebook, MapPin, User, Building2, ShieldCheck, ShieldAlert } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
 const ProfileOverview = async ({ params }: { params: Promise<{ profileId: string }> }) => {
   const { profileId } = await params;
+  const session = await getSession();
 
   // Try clientProfile first, then organizationProfile
   const clientProfile = await db.clientProfile.findUnique({
@@ -36,6 +39,19 @@ const ProfileOverview = async ({ params }: { params: Promise<{ profileId: string
               <h1 className="text-2xl font-bold text-white">{name}</h1>
               {clientProfile.age && (
                 <p className="text-sm text-white/50 mt-0.5">{clientProfile.age} років</p>
+              )}
+              {clientProfile.isMilitary && (
+                <div className="flex items-center gap-1.5 mt-1.5">
+                  {clientProfile.isMilitaryVerified ? (
+                    <span className="flex items-center gap-1 text-xs font-semibold text-green-400">
+                      <ShieldCheck size={13} /> Верифікований військовослужбовець
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1 text-xs text-yellow-400/80">
+                      <ShieldAlert size={13} /> Військовослужбовець (не верифіковано)
+                    </span>
+                  )}
+                </div>
               )}
             </div>
           </div>
@@ -175,6 +191,17 @@ const ProfileOverview = async ({ params }: { params: Promise<{ profileId: string
           <div className="text-white/80 text-sm leading-relaxed">
             <ReadText value={orgProfile.description} />
           </div>
+        </div>
+      )}
+
+      {/* complaint — not for own profile, not for admins */}
+      {orgProfile.user_id !== session?.userId && (
+        <div className="flex justify-end mt-2">
+          <OrganizationComplaintButton
+            organizationId={orgProfile.id}
+            isSignedIn={!!session}
+            isAdmin={session ? await checkIsAdmin(session.userId) : false}
+          />
         </div>
       )}
     </div>

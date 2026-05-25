@@ -1,10 +1,11 @@
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
-import { getSession } from "@/lib/auth";
+import { getSession, isAdmin as checkIsAdmin } from "@/lib/auth";
 import ReadText from "@/components/custom/ReadTwxt";
 import Link from "next/link";
 import Image from "next/image";
 import CourseDetailTabs from "@/components/courses/CourseDetailTabs";
+import CourseComplaintButton from "@/components/courses/CourseComplaintButton";
 import { MapPin, Calendar, Users, Tag, Banknote, CheckCircle, Clock } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -53,10 +54,20 @@ const CourseOverview = async ({ params }: { params: Promise<{ courseId: string }
     profile: { ...r.profile, isOrganization: false },
   }));
 
+  let canComplain = false;
+  let isOrganization = false;
+  let isAdmin = false;
   let canReview = false;
   if (session) {
-    const currentProfile = await db.clientProfile.findUnique({ where: { user_id: session.userId } });
-    if (currentProfile) {
+    const [currentProfile, orgProfile, admin] = await Promise.all([
+      db.clientProfile.findUnique({ where: { user_id: session.userId } }),
+      db.organizationProfile.findUnique({ where: { user_id: session.userId } }),
+      checkIsAdmin(session.userId),
+    ]);
+    isOrganization = !!orgProfile;
+    isAdmin = admin;
+    if (currentProfile && !admin) {
+      canComplain = true;
       const confirmedPurchase = await db.purchase.findFirst({
         where: { customerId: currentProfile.id, courseId, confirmed: true },
       });
@@ -163,6 +174,13 @@ const CourseOverview = async ({ params }: { params: Promise<{ courseId: string }
         {/* divider */}
         <div className="border-t border-white/8" />
 
+        {/* complaint button for registered clients */}
+        {canComplain && (
+          <div className="flex justify-end">
+            <CourseComplaintButton courseId={courseId} />
+          </div>
+        )}
+
         {/* tabs: відгуки / історія */}
         <CourseDetailTabs
           courseId={courseId}
@@ -170,6 +188,8 @@ const CourseOverview = async ({ params }: { params: Promise<{ courseId: string }
           avgRating={avgRating}
           canReview={canReview}
           hasReviewed={!!hasReviewed}
+          isOrganization={isOrganization}
+          isAdmin={isAdmin}
           runs={course.runs.map((r) => ({
             id: r.id,
             startDate: r.startDate.toISOString(),

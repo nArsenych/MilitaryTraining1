@@ -30,7 +30,12 @@ function SignInForm() {
       const data = await res.json();
 
       if (!res.ok) {
-        toast.error(data.error || "Помилка входу");
+        if (data.requiresVerification) {
+          toast.error(data.error);
+          router.push(`/verify-email?email=${encodeURIComponent(data.email || email)}`);
+        } else {
+          toast.error(data.error || "Помилка входу");
+        }
         return;
       }
 

@@ -1,4 +1,5 @@
 import StarRating from "@/components/courses/StarRating";
+import ReviewComplaintButton from "@/components/courses/ReviewComplaintButton";
 
 interface Review {
   id: string;
@@ -15,9 +16,11 @@ interface ReviewsListProps {
   reviews: Review[];
   avgRating: number;
   count: number;
+  isOrganization?: boolean;
+  isAdmin?: boolean;
 }
 
-const ReviewsList = ({ reviews, avgRating, count }: ReviewsListProps) => {
+const ReviewsList = ({ reviews, avgRating, count, isOrganization, isAdmin }: ReviewsListProps) => {
   if (count === 0) {
     return (
       <p className="text-white/30 text-sm py-4">Поки немає відгуків</p>
@@ -46,9 +49,12 @@ const ReviewsList = ({ reviews, avgRating, count }: ReviewsListProps) => {
                 </span>
                 <StarRating rating={review.rating} readonly size={13} />
               </div>
-              <span className="text-[11px] text-white/30">
-                {new Date(review.createdAt).toLocaleDateString("uk-UA")}
-              </span>
+              <div className="flex items-center gap-3">
+                <span className="text-[11px] text-white/30">
+                  {new Date(review.createdAt).toLocaleDateString("uk-UA")}
+                </span>
+                {isOrganization && !isAdmin && <ReviewComplaintButton reviewId={review.id} />}
+              </div>
             </div>
             {review.comment && (
               <p className="text-sm text-white/60 leading-relaxed mt-1">{review.comment}</p>

@@ -1,7 +1,7 @@
 import { getOrganizationStatus } from "@/components/NavbarRoutes";
 import EditProfileForm from "@/components/profiles/EditProfileForm";
 import { db } from "@/lib/db";
-import { getSession } from "@/lib/auth";
+import { getSession, getUserById } from "@/lib/auth";
 import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
@@ -18,6 +18,8 @@ const ProfileBasics = async ({ params }: { params: Promise<{ profileId: string }
     return redirect("/sign-in");
   }
 
+  const user = await getUserById(session.userId);
+
   // Try organizationProfile first (to route correctly on not-found)
   const orgProfile = await db.organizationProfile.findUnique({
     where: { id: profileId, user_id: session.userId },
@@ -25,8 +27,8 @@ const ProfileBasics = async ({ params }: { params: Promise<{ profileId: string }
 
   if (orgProfile) {
     return (
-      <div className="px-10">
-        <EditProfileForm profile={orgProfile} isOrganization={true} />
+      <div className="px-4 md:px-10">
+        <EditProfileForm profile={orgProfile} isOrganization={true} userEmail={user?.email || ""} />
       </div>
     );
   }
@@ -41,8 +43,8 @@ const ProfileBasics = async ({ params }: { params: Promise<{ profileId: string }
 
   const isOrganization = await getOrganizationStatus();
   return (
-    <div className="px-10">
-      <EditProfileForm profile={clientProfile} isOrganization={isOrganization} />
+    <div className="px-4 md:px-10">
+      <EditProfileForm profile={clientProfile} isOrganization={isOrganization} userEmail={user?.email || ""} />
     </div>
   );
 };

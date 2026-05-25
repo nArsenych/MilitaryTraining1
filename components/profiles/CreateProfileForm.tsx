@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -40,7 +40,7 @@ const CreateProfileForm = () => {
         try {
             const response = await axios.post("/api/profiles", values);
             router.push(`/users/profiles/${response.data.id}`);
-            toast.success("Новий профіль створено");
+            toast.success("ÐÐ¾Ð²Ð¸Ð¹ Ð¿Ñ€Ð¾Ñ„Ñ–Ð»ÑŒ ÑÑ‚Ð²Ð¾Ñ€ÐµÐ½Ð¾");
         } catch (err) {
             console.log("Failed to create new profile", err);
             toast.error("Something went wrong!");
@@ -48,9 +48,9 @@ const CreateProfileForm = () => {
     };
 
     return (
-        <div className="p-10">
+        <div className="p-4 md:p-10">
             <h1 className="text-xl font-bold">
-                Заповніть, будь ласка, необхідну інформацію
+                Ð—Ð°Ð¿Ð¾Ð²Ð½Ñ–Ñ‚ÑŒ, Ð±ÑƒÐ´ÑŒ Ð»Ð°ÑÐºÐ°, Ð½ÐµÐ¾Ð±Ñ…Ñ–Ð´Ð½Ñƒ Ñ–Ð½Ñ„Ð¾Ñ€Ð¼Ð°Ñ†Ñ–ÑŽ
             </h1>
 
             <Form {...form}>
@@ -60,10 +60,10 @@ const CreateProfileForm = () => {
                         name="full_name"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel> Ім&apos;я</FormLabel>
+                                <FormLabel> Ð†Ð¼&apos;Ñ</FormLabel>
                                 <FormControl>
                                     <Input
-                                        placeholder="Введіть своє повне ім'я"
+                                        placeholder="Ð’Ð²ÐµÐ´Ñ–Ñ‚ÑŒ ÑÐ²Ð¾Ñ” Ð¿Ð¾Ð²Ð½Ðµ Ñ–Ð¼'Ñ"
                                         {...field}
                                     />
                                 </FormControl>
@@ -78,10 +78,10 @@ const CreateProfileForm = () => {
                             name="phone_number"
                             render={({ field }) => (
                                 <FormItem className="flex flex-col">
-                                    <FormLabel>Номер телефону</FormLabel>
+                                    <FormLabel>ÐÐ¾Ð¼ÐµÑ€ Ñ‚ÐµÐ»ÐµÑ„Ð¾Ð½Ñƒ</FormLabel>
                                     <FormControl>
                                     <Input
-                                        placeholder="Введіть номер телефону"
+                                        placeholder="Ð’Ð²ÐµÐ´Ñ–Ñ‚ÑŒ Ð½Ð¾Ð¼ÐµÑ€ Ñ‚ÐµÐ»ÐµÑ„Ð¾Ð½Ñƒ"
                                         {...field}
                                     />
                                     </FormControl>
@@ -92,7 +92,7 @@ const CreateProfileForm = () => {
                     </div>
 
 
-                    <Button type="submit">Продовжити</Button>
+                    <Button type="submit">ÐŸÑ€Ð¾Ð´Ð¾Ð²Ð¶Ð¸Ñ‚Ð¸</Button>
                 </form>
             </Form>
         </div>
