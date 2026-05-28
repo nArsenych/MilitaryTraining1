@@ -78,11 +78,19 @@ export async function POST(
       select: {
         id: true,
         organizationId: true,
+        startDate: true,
       },
     });
 
     if (!course) {
       return new NextResponse("Course not found", { status: 404 });
+    }
+
+    if (course.startDate && new Date(course.startDate) < new Date()) {
+      return NextResponse.json(
+        { error: "Запис на курс закрито — дата початку вже минула" },
+        { status: 400 }
+      );
     }
 
     const existingPurchase = await db.purchase.findUnique({

@@ -26,6 +26,68 @@ const Topbar = () => {
         if (e.key === "Enter") handleSearch();
     };
 
+    // Fix #3: extracted from nested ternary to avoid linting error
+    const renderDesktopNavLinks = () => {
+        if (authLoading) {
+            return (
+                <Button variant="outline" disabled className="rounded-full border-white/20 text-white/40 bg-transparent px-5">
+                    &nbsp;
+                </Button>
+            );
+        }
+        if (!isSignedIn) {
+            return (
+                <Link href="/sign-in">
+                    <Button className="rounded-full bg-[#FDAB04] hover:bg-[#ebac66] text-black font-semibold px-5">
+                        Увійти
+                    </Button>
+                </Link>
+            );
+        }
+        if (profileLoading) {
+            return (
+                <Button variant="outline" disabled className="rounded-full border-white/30 text-white bg-transparent">
+                    Завантаження…
+                </Button>
+            );
+        }
+        return (
+            <>
+                {isAdmin && (
+                    <Link
+                        href="/admin"
+                        className="text-sm font-medium text-[#FDAB04] hover:text-[#ebac66] transition-colors"
+                    >
+                        Адмін-панель
+                    </Link>
+                )}
+                {!isAdmin && isOrganization && (
+                    <Link
+                        href="/instructor/courses"
+                        className="text-sm font-medium text-white/80 hover:text-[#FDAB04] transition-colors"
+                    >
+                        Ваші курси
+                    </Link>
+                )}
+                {!isAdmin && !isOrganization && (
+                    <Link
+                        href="/my-courses"
+                        className="text-sm font-medium text-white/80 hover:text-[#FDAB04] transition-colors"
+                    >
+                        Мої курси
+                    </Link>
+                )}
+                {!isAdmin && (
+                    <Link href={`/users/profiles/${profileId}`}>
+                        <Button className="rounded-full bg-[#FDAB04] hover:bg-[#ebac66] text-black font-semibold px-5">
+                            Мій профіль
+                        </Button>
+                    </Link>
+                )}
+            </>
+        );
+    };
+
     return (
         <div
             className="relative w-full h-screen bg-cover bg-center overflow-hidden"
@@ -37,7 +99,15 @@ const Topbar = () => {
             {/* Mobile menu overlay */}
             {mobileMenuOpen && (
                 <div className="fixed inset-0 z-50 md:hidden">
-                    <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} />
+                    {/* Fix #1 & #2: role + tabIndex + onKeyDown on the clickable backdrop */}
+                    <div
+                        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+                        role="button"
+                        tabIndex={0}
+                        aria-label="Закрити меню"
+                        onClick={() => setMobileMenuOpen(false)}
+                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === "Escape") setMobileMenuOpen(false); }}
+                    />
                     <div className="absolute top-0 right-0 h-full w-72 bg-[#272523] flex flex-col p-6 shadow-2xl">
                         <div className="flex items-center justify-between mb-8">
                             <span className="text-[#FDAB04] font-bold text-lg tracking-widest uppercase">MilitaryTraning</span>
@@ -117,6 +187,7 @@ const Topbar = () => {
                 <button
                     className="md:hidden text-white/80 hover:text-white p-1 transition-colors"
                     onClick={() => setMobileMenuOpen(true)}
+                    aria-label="Відкрити меню"
                 >
                     <Menu size={26} />
                 </button>
@@ -142,57 +213,7 @@ const Topbar = () => {
 
                     {/* links */}
                     <div className="flex items-center gap-5">
-                        {authLoading ? (
-                            <Button variant="outline" disabled className="rounded-full border-white/20 text-white/40 bg-transparent px-5">
-                                &nbsp;
-                            </Button>
-                        ) : isSignedIn ? (
-                            profileLoading ? (
-                                <Button variant="outline" disabled className="rounded-full border-white/30 text-white bg-transparent">
-                                    Завантаження…
-                                </Button>
-                            ) : (
-                                <>
-                                    {isAdmin && (
-                                        <Link
-                                            href="/admin"
-                                            className="text-sm font-medium text-[#FDAB04] hover:text-[#ebac66] transition-colors"
-                                        >
-                                            Адмін-панель
-                                        </Link>
-                                    )}
-                                    {!isAdmin && isOrganization && (
-                                        <Link
-                                            href="/instructor/courses"
-                                            className="text-sm font-medium text-white/80 hover:text-[#FDAB04] transition-colors"
-                                        >
-                                            Ваші курси
-                                        </Link>
-                                    )}
-                                    {!isAdmin && !isOrganization && (
-                                        <Link
-                                            href="/my-courses"
-                                            className="text-sm font-medium text-white/80 hover:text-[#FDAB04] transition-colors"
-                                        >
-                                            Мої курси
-                                        </Link>
-                                    )}
-                                    {!isAdmin && (
-                                        <Link href={`/users/profiles/${profileId}`}>
-                                            <Button className="rounded-full bg-[#FDAB04] hover:bg-[#ebac66] text-black font-semibold px-5">
-                                                Мій профіль
-                                            </Button>
-                                        </Link>
-                                    )}
-                                </>
-                            )
-                        ) : (
-                            <Link href="/sign-in">
-                                <Button className="rounded-full bg-[#FDAB04] hover:bg-[#ebac66] text-black font-semibold px-5">
-                                    Увійти
-                                </Button>
-                            </Link>
-                        )}
+                        {renderDesktopNavLinks()}
                     </div>
                 </div>
             </div>

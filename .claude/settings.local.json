@@ -24,7 +24,9 @@
       "PowerShell(npx tsc --noEmit 2>&1)",
       "PowerShell(node scripts/make-admin.js \"arsenychn@gmail.com\" 2>&1)",
       "mcp__ide__getDiagnostics",
-      "Bash(npx tsx *)"
+      "Bash(npx tsx *)",
+      "Bash(Get-Item prisma\\\\ERD.svg)",
+      "Bash(Select-Object Name, Length, LastWriteTime)"
     ]
   }
 }

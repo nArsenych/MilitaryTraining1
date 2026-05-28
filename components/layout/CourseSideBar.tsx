@@ -2,7 +2,7 @@ import { db } from "@/lib/db";
 import { Course } from "@prisma/client";
 import Link from "next/link";
 import { EnrollButton } from "@/components/custom/EnrollButton";
-import { Home, Info, LogIn, CheckCircle2 } from "lucide-react";
+import { Home, Info, LogIn, CheckCircle2, CalendarX } from "lucide-react";
 
 interface CourseSideBarProps {
   course: Course;
@@ -10,6 +10,7 @@ interface CourseSideBarProps {
 }
 
 const CourseSideBar = async ({ course, studentId }: CourseSideBarProps) => {
+  const isPastStart = course.startDate ? new Date(course.startDate) < new Date() : false;
   let clientProfile = null;
   let existingPurchase = null;
 
@@ -63,13 +64,20 @@ const CourseSideBar = async ({ course, studentId }: CourseSideBarProps) => {
       )}
 
       {studentId && clientProfile && !existingPurchase && (
-        <div className="mx-2">
-          <EnrollButton
-            courseId={course.id}
-            studentId={studentId}
-            className="w-full flex items-center justify-center px-4 py-2 rounded-lg bg-[#FDAB04] hover:bg-[#ebac66] text-black text-sm font-semibold transition-colors"
-          />
-        </div>
+        isPastStart ? (
+          <div className="mx-2 flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white/40 text-sm">
+            <CalendarX size={14} className="shrink-0" />
+            Запис закрито
+          </div>
+        ) : (
+          <div className="mx-2">
+            <EnrollButton
+              courseId={course.id}
+              studentId={studentId}
+              className="w-full flex items-center justify-center px-4 py-2 rounded-lg bg-[#FDAB04] hover:bg-[#ebac66] text-black text-sm font-semibold transition-colors"
+            />
+          </div>
+        )
       )}
 
       {existingPurchase && (

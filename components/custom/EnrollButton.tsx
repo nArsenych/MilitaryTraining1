@@ -25,8 +25,9 @@ export const EnrollButton = ({
 
       toast.success("Ви успішно записались на курс!");
       window.location.reload();
-    } catch {
-      toast.error("Щось пішло не так");
+    } catch (err: any) {
+      const msg = err?.response?.data?.error || "Щось пішло не так";
+      toast.error(msg);
     } finally {
       setIsLoading(false);
     }
