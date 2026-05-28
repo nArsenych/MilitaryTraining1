@@ -2,9 +2,10 @@ import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { sendVerificationEmail } from "@/lib/email";
+import { randomInt } from "crypto";
 
 function generateCode(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  return randomInt(100000, 1000000).toString();
 }
 
 export async function POST(req: Request) {

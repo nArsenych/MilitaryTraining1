@@ -10,6 +10,51 @@ import { MapPin, Calendar, Users, Tag, Banknote, CheckCircle, Clock } from "luci
 
 export const dynamic = "force-dynamic";
 
+type UserContext = {
+  isOrganization: boolean;
+  isAdmin: boolean;
+  canComplain: boolean;
+  canReview: boolean;
+  hasReviewed: boolean;
+  canComplainAboutReview: boolean;
+};
+
+async function resolveUserContext(userId: string, courseId: string, courseOrganizationId: string): Promise<UserContext> {
+  const [clientProfile, orgProfile, admin] = await Promise.all([
+    db.clientProfile.findUnique({ where: { user_id: userId } }),
+    db.organizationProfile.findUnique({ where: { user_id: userId } }),
+    checkIsAdmin(userId),
+  ]);
+
+  if (admin) {
+    return { isOrganization: !!orgProfile, isAdmin: true, canComplain: false, canReview: false, hasReviewed: false, canComplainAboutReview: false };
+  }
+
+  if (orgProfile) {
+    const isOwnCourse = courseOrganizationId === orgProfile.id;
+    return { isOrganization: true, isAdmin: false, canComplain: !isOwnCourse, canReview: false, hasReviewed: false, canComplainAboutReview: true };
+  }
+
+  if (!clientProfile) {
+    return { isOrganization: false, isAdmin: false, canComplain: false, canReview: false, hasReviewed: false, canComplainAboutReview: false };
+  }
+
+  const [confirmedPurchase, existingReview] = await Promise.all([
+    db.purchase.findFirst({ where: { customerId: clientProfile.id, courseId, confirmed: true } }),
+    db.review.findUnique({ where: { profileId_courseId: { profileId: clientProfile.id, courseId } } }),
+  ]);
+
+  const hasReviewed = !!existingReview;
+  const canReview = !!confirmedPurchase && !hasReviewed;
+
+  return { isOrganization: false, isAdmin: false, canComplain: true, canReview, hasReviewed, canComplainAboutReview: true };
+}
+
+const noSession: UserContext = {
+  isOrganization: false, isAdmin: false, canComplain: false,
+  canReview: false, hasReviewed: false, canComplainAboutReview: false,
+};
+
 const CourseOverview = async ({ params }: { params: Promise<{ courseId: string }> }) => {
   const { courseId } = await params;
   const session = await getSession();
@@ -26,84 +71,44 @@ const CourseOverview = async ({ params }: { params: Promise<{ courseId: string }
 
   if (!course) return redirect("/");
 
-  const userProfile = course.organization;
+  const [level, city, category, reviews] = await Promise.all([
+    course.levelId    ? db.level.findUnique({ where: { id: course.levelId } })       : null,
+    course.cityId     ? db.city.findUnique({ where: { id: course.cityId } })         : null,
+    course.categoryId ? db.category.findUnique({ where: { id: course.categoryId } }) : null,
+    db.review.findMany({
+      where: { courseId },
+      include: { profile: { select: { full_name: true } } },
+      orderBy: { createdAt: "desc" },
+    }),
+  ]);
 
-  let level;
-  if (course.levelId) level = await db.level.findUnique({ where: { id: course.levelId } });
-  let city;
-  if (course.cityId) city = await db.city.findUnique({ where: { id: course.cityId } });
-  let category;
-  if (course.categoryId) category = await db.category.findUnique({ where: { id: course.categoryId } });
+  const avgRating = reviews.length > 0
+    ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+    : 0;
 
-  const reviews = await db.review.findMany({
-    where: { courseId },
-    include: {
-      profile: { select: { full_name: true } },
-    },
-    orderBy: { createdAt: "desc" },
-  });
-
-  const avgRating =
-    reviews.length > 0
-      ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
-      : 0;
-
-  // Normalize reviews shape for frontend — reviews can only be from ClientProfile
   const normalizedReviews = reviews.map((r) => ({
     ...r,
     profile: { ...r.profile, isOrganization: false },
   }));
 
-  let canComplain = false;
-  let isOrganization = false;
-  let isAdmin = false;
-  let canReview = false;
-  if (session) {
-    const [currentProfile, orgProfile, admin] = await Promise.all([
-      db.clientProfile.findUnique({ where: { user_id: session.userId } }),
-      db.organizationProfile.findUnique({ where: { user_id: session.userId } }),
-      checkIsAdmin(session.userId),
-    ]);
-    isOrganization = !!orgProfile;
-    isAdmin = admin;
-    if (currentProfile && !admin) {
-      canComplain = true;
-      const confirmedPurchase = await db.purchase.findFirst({
-        where: { customerId: currentProfile.id, courseId, confirmed: true },
-      });
-      if (confirmedPurchase) {
-        const alreadyReviewed = await db.review.findUnique({
-          where: { profileId_courseId: { profileId: currentProfile.id, courseId } },
-        });
-        canReview = !alreadyReviewed;
-      }
-    }
-  }
-
-  const hasReviewed = session && !canReview && await (async () => {
-    const profile = await db.clientProfile.findUnique({ where: { user_id: session.userId } });
-    if (!profile) return false;
-    const review = await db.review.findUnique({
-      where: { profileId_courseId: { profileId: profile.id, courseId } },
-    });
-    return !!review;
-  })();
+  const { isOrganization, isAdmin, canComplain, canReview, hasReviewed, canComplainAboutReview } = session
+    ? await resolveUserContext(session.userId, courseId, course.organizationId)
+    : noSession;
 
   const fmt = (d: Date | null) =>
     d ? new Date(d).toLocaleDateString("uk-UA", { day: "2-digit", month: "long", year: "numeric" }) : null;
 
-  const durationDays =
-    course.startDate && course.endDate
-      ? Math.ceil((new Date(course.endDate).getTime() - new Date(course.startDate).getTime()) / 86400000)
-      : null;
+  const durationDays = course.startDate && course.endDate
+    ? Math.ceil((new Date(course.endDate).getTime() - new Date(course.startDate).getTime()) / 86400000)
+    : null;
 
   const meta = [
-    { icon: Banknote, label: "Ціна",     value: course.price ? `${course.price} грн` : "Безкоштовно" },
-    { icon: Tag,      label: "Рівень",   value: level?.name },
-    { icon: MapPin,   label: "Місто",    value: city?.name },
-    { icon: Users,    label: "Вік",      value: course.startAge ? `від ${course.startAge}${course.endAge ? ` до ${course.endAge}` : ""} р.` : undefined },
-    { icon: Calendar, label: "Початок",  value: fmt(course.startDate) },
-    { icon: Calendar, label: "Кінець",   value: fmt(course.endDate) },
+    { icon: Banknote, label: "Ціна",       value: course.price ? `${course.price} грн` : "Безкоштовно" },
+    { icon: Tag,      label: "Рівень",     value: level?.name },
+    { icon: MapPin,   label: "Місто",      value: city?.name },
+    { icon: Users,    label: "Вік",        value: course.startAge ? `від ${course.startAge}${course.endAge ? ` до ${course.endAge}` : ""} р.` : undefined },
+    { icon: Calendar, label: "Початок",    value: fmt(course.startDate) },
+    { icon: Calendar, label: "Кінець",     value: fmt(course.endDate) },
     { icon: Clock,    label: "Тривалість", value: durationDays ? `${durationDays} дн.` : undefined },
   ].filter((m) => m.value);
 
@@ -120,25 +125,23 @@ const CourseOverview = async ({ params }: { params: Promise<{ courseId: string }
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#302E2B] via-[#302E2B]/55 to-transparent" />
 
-        {/* category pill */}
         {category && (
           <span className="absolute top-4 left-6 bg-[#FDAB04] text-black text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wide">
             {category.name}
           </span>
         )}
 
-        {/* title block */}
         <div className="absolute bottom-0 left-0 right-0 px-6 pb-5">
           <h1 className="text-2xl sm:text-3xl font-black text-white leading-tight drop-shadow-lg mb-2">
             {course.title}
           </h1>
-          {userProfile && (
+          {course.organization && (
             <Link
-              href={`/profile/${userProfile.id}/overview`}
+              href={`/profile/${course.organization.id}/overview`}
               className="inline-flex items-center gap-1.5 text-xs font-medium text-[#FDAB04] hover:text-[#ebac66] transition-colors"
             >
               <CheckCircle size={13} />
-              {userProfile.full_name || userProfile.user?.name || "Невідома організація"}
+              {course.organization.full_name || course.organization.user?.name || "Невідома організація"}
             </Link>
           )}
         </div>
@@ -147,7 +150,6 @@ const CourseOverview = async ({ params }: { params: Promise<{ courseId: string }
       {/* ── Content ── */}
       <div className="px-6 py-7 flex flex-col gap-7 max-w-3xl">
 
-        {/* meta pills row */}
         <div className="flex flex-wrap gap-2">
           {meta.map(({ icon: Icon, label, value }) => (
             <div
@@ -161,7 +163,6 @@ const CourseOverview = async ({ params }: { params: Promise<{ courseId: string }
           ))}
         </div>
 
-        {/* description */}
         {course.description && (
           <div className="rounded-2xl bg-[#3D3A36] border border-white/8 px-5 py-5">
             <p className="text-[10px] font-semibold text-white/30 uppercase tracking-widest mb-3">Опис курсу</p>
@@ -171,17 +172,14 @@ const CourseOverview = async ({ params }: { params: Promise<{ courseId: string }
           </div>
         )}
 
-        {/* divider */}
         <div className="border-t border-white/8" />
 
-        {/* complaint button for registered clients */}
         {canComplain && (
           <div className="flex justify-end">
             <CourseComplaintButton courseId={courseId} />
           </div>
         )}
 
-        {/* tabs: відгуки / історія */}
         <CourseDetailTabs
           courseId={courseId}
           reviews={normalizedReviews.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() }))}
@@ -190,6 +188,7 @@ const CourseOverview = async ({ params }: { params: Promise<{ courseId: string }
           hasReviewed={!!hasReviewed}
           isOrganization={isOrganization}
           isAdmin={isAdmin}
+          canComplainAboutReview={canComplainAboutReview}
           runs={course.runs.map((r) => ({
             id: r.id,
             startDate: r.startDate.toISOString(),

@@ -22,7 +22,8 @@ type CommentComplaint = {
   status: string;
   createdAt: string;
   review: { id: string; comment: string | null; rating: number };
-  organization: { id: string; full_name: string | null; user: { email: string } };
+  organization: { id: string; full_name: string | null; user: { email: string } } | null;
+  user: { id: string; email: string; name: string | null } | null;
 };
 
 type OrganizationComplaint = {
@@ -204,7 +205,9 @@ const AdminComplaintsTable = ({ complaints, status, type }: Props) => {
                   <p className="text-white/40 text-xs mb-3">
                     Від:{" "}
                     {c.type === "comment"
-                      ? (c.organization.full_name || c.organization.user.email)
+                      ? (c.organization
+                          ? (c.organization.full_name || c.organization.user.email)
+                          : (c.user?.name || c.user?.email || "—"))
                       : (c.user.name || c.user.email)}
                   </p>
 

@@ -43,6 +43,7 @@ model User {
   organizationProfile     OrganizationProfile?
   warnings                UserWarning[]
   courseComplaints        CourseComplaint[]
+  commentComplaints       CommentComplaint[]
   organizationComplaints  OrganizationComplaint[]
 }
 
@@ -71,17 +72,20 @@ model CourseComplaint {
 }
 
 model CommentComplaint {
-  id             String              @id @default(uuid())
+  id             String               @id @default(uuid())
   reviewId       String
-  organizationId String
-  reason         String              @db.Text
-  status         ComplaintStatus     @default(PENDING)
-  createdAt      DateTime            @default(now())
-  review         Review              @relation(fields: [reviewId], references: [id], onDelete: Cascade)
-  organization   OrganizationProfile @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String?
+  userId         String?
+  reason         String               @db.Text
+  status         ComplaintStatus      @default(PENDING)
+  createdAt      DateTime             @default(now())
+  review         Review               @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  organization   OrganizationProfile? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User?                @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([reviewId])
   @@index([organizationId])
+  @@index([userId])
 }
 
 model OrganizationComplaint {

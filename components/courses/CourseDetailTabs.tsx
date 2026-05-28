@@ -28,6 +28,7 @@ interface CourseDetailTabsProps {
   runs: CourseRun[]
   isOrganization?: boolean
   isAdmin?: boolean
+  canComplainAboutReview?: boolean
 }
 
 const fmt = (d: string) =>
@@ -42,6 +43,7 @@ const CourseDetailTabs = ({
   runs,
   isOrganization,
   isAdmin,
+  canComplainAboutReview,
 }: CourseDetailTabsProps) => {
   const [tab, setTab] = useState<"reviews" | "history">("reviews")
 
@@ -84,7 +86,7 @@ const CourseDetailTabs = ({
               Ви вже оцінили цей курс
             </div>
           )}
-          <ReviewsList reviews={reviews} avgRating={avgRating} count={reviews.length} isOrganization={isOrganization} isAdmin={isAdmin} />
+          <ReviewsList reviews={reviews} avgRating={avgRating} count={reviews.length} isAdmin={isAdmin} canComplainAboutReview={canComplainAboutReview} />
         </div>
       )}
 

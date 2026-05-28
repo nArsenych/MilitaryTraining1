@@ -23,10 +23,17 @@ export async function POST(
   const course = await db.course.findUnique({ where: { id: courseId } });
   if (!course) return new NextResponse("Not Found", { status: 404 });
 
-  // Only clients (not organizations) can complain about courses
-  const clientProfile = await db.clientProfile.findUnique({ where: { user_id: session.userId } });
-  if (!clientProfile) {
-    return NextResponse.json({ error: "Тільки зареєстровані користувачі можуть надсилати скарги на курси" }, { status: 403 });
+  const [clientProfile, orgProfile] = await Promise.all([
+    db.clientProfile.findUnique({ where: { user_id: session.userId } }),
+    db.organizationProfile.findUnique({ where: { user_id: session.userId } }),
+  ]);
+
+  if (!clientProfile && !orgProfile) {
+    return NextResponse.json({ error: "Профіль не знайдено" }, { status: 403 });
+  }
+
+  if (orgProfile && course.organizationId === orgProfile.id) {
+    return NextResponse.json({ error: "Ви не можете скаржитися на власний курс" }, { status: 400 });
   }
 
   const existing = await db.courseComplaint.findFirst({

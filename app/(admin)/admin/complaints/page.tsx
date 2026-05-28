@@ -29,6 +29,7 @@ const AdminComplaintsPage = async ({
           include: {
             review: { select: { id: true, comment: true, rating: true } },
             organization: { select: { id: true, full_name: true, user: { select: { email: true } } } },
+            user: { select: { id: true, email: true, name: true } },
           },
           orderBy: { createdAt: "desc" },
         }),

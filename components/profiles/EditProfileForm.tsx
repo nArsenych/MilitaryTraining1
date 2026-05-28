@@ -18,6 +18,250 @@ interface EditProfileFormProps {
 
 const inp = "bg-[#272523] border-white/10 text-white placeholder:text-white/30 focus:border-[#FDAB04]/50 transition-colors";
 const lbl = "block text-xs font-semibold mb-1.5 text-white/60 uppercase tracking-wider";
+const PHONE_REGEX = /^\+?[\d\s\-()()]{7,20}$/;
+
+function validateProfileForm(
+  fullName: string,
+  phoneNumber: string,
+  isOrganization: boolean,
+  description: string,
+): string | null {
+  if (!fullName.trim()) return "Введіть ім'я / назву";
+  if (phoneNumber && !PHONE_REGEX.test(phoneNumber))
+    return "Введіть коректний номер телефону (наприклад, +380XXXXXXXXX)";
+  if (isOrganization && !description.trim()) return "Опис організації обов'язковий";
+  return null;
+}
+
+interface MilitarySectionProps {
+  isMilitary: boolean;
+  initialIsMilitaryVerified: boolean;
+  isMilEmail: boolean;
+  onToggle: (checked: boolean) => void;
+}
+
+const MilitarySection = ({ isMilitary, initialIsMilitaryVerified, isMilEmail, onToggle }: MilitarySectionProps) => {
+  const [milVerifyStep, setMilVerifyStep] = useState<"idle" | "code_sent" | "verified">(
+    initialIsMilitaryVerified ? "verified" : "idle"
+  );
+  const [milCode, setMilCode] = useState("");
+  const [milSending, setMilSending] = useState(false);
+  const [milConfirming, setMilConfirming] = useState(false);
+
+  const handleToggle = (checked: boolean) => {
+    onToggle(checked);
+    if (!checked) { setMilVerifyStep("idle"); setMilCode(""); }
+  };
+
+  const handleSendMilCode = async () => {
+    setMilSending(true);
+    try {
+      const res = await fetch("/api/profile/verify-military", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) { toast.error(data.error || "Помилка надсилання коду"); return; }
+      setMilVerifyStep("code_sent");
+      setMilCode("");
+      toast.success("Код надіслано на вашу пошту");
+    } catch {
+      toast.error("Щось пішло не так");
+    } finally {
+      setMilSending(false);
+    }
+  };
+
+  const handleConfirmMilCode = async () => {
+    if (milCode.length !== 6) { toast.error("Введіть 6-значний код"); return; }
+    setMilConfirming(true);
+    try {
+      const res = await fetch("/api/profile/verify-military/confirm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: milCode }),
+      });
+      const data = await res.json();
+      if (!res.ok) { toast.error(data.error || "Неправильний код"); return; }
+      setMilVerifyStep("verified");
+      toast.success("Військовий статус верифіковано!");
+    } catch {
+      toast.error("Щось пішло не так");
+    } finally {
+      setMilConfirming(false);
+    }
+  };
+
+  return (
+    <div>
+      <div className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          id="isMilitary"
+          checked={isMilitary}
+          onChange={(e) => handleToggle(e.target.checked)}
+          className="h-4 w-4 accent-[#FDAB04]"
+        />
+        <label htmlFor="isMilitary" className="text-sm font-medium text-white/75 flex items-center gap-2">
+          Я військовослужбовець
+          {isMilitary && (milVerifyStep === "verified" ? (
+            <span className="flex items-center gap-1 text-xs text-green-400 font-semibold">
+              <ShieldCheck size={13} /> Верифіковано
+            </span>
+          ) : (
+            <span className="flex items-center gap-1 text-xs text-yellow-400/80">
+              <ShieldAlert size={13} /> Не верифіковано
+            </span>
+          ))}
+        </label>
+      </div>
+
+      {isMilitary && (
+        <div className="mt-3 rounded-xl border border-yellow-500/20 bg-yellow-500/5 p-4 space-y-3">
+          <div className="flex items-start gap-2 text-sm text-yellow-300/80">
+            <AlertTriangle size={15} className="mt-0.5 shrink-0" />
+            <p>
+              Для підтвердження статусу військовослужбовця необхідна пошта домену{" "}
+              <span className="font-semibold text-yellow-300">@mil.gov.ua</span>.
+              {!isMilEmail && " Ваш статус буде збережено як неверифікований."}
+            </p>
+          </div>
+
+          {isMilEmail && milVerifyStep !== "verified" && (
+            <div className="space-y-2">
+              {milVerifyStep === "idle" && (
+                <button
+                  type="button"
+                  onClick={handleSendMilCode}
+                  disabled={milSending}
+                  className="flex items-center gap-1.5 text-sm font-medium text-[#FDAB04] hover:text-[#ebac66] transition-colors disabled:opacity-50"
+                >
+                  {milSending ? <Loader2 size={13} className="animate-spin" /> : <ShieldCheck size={13} />}
+                  {milSending ? "Надсилання..." : "Верифікувати через пошту"}
+                </button>
+              )}
+
+              {milVerifyStep === "code_sent" && (
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={6}
+                    value={milCode}
+                    onChange={(e) => setMilCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                    placeholder="Введіть 6-значний код"
+                    className="bg-[#272523] border-white/10 text-white placeholder:text-white/30 focus:border-[#FDAB04]/50 w-48 text-center tracking-widest text-lg font-bold"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleConfirmMilCode}
+                    disabled={milConfirming || milCode.length < 6}
+                    className="px-3 py-2 rounded-lg bg-[#FDAB04] hover:bg-[#ebac66] text-black text-sm font-semibold transition-colors disabled:opacity-50"
+                  >
+                    {milConfirming ? <Loader2 size={14} className="animate-spin" /> : "Підтвердити"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSendMilCode}
+                    disabled={milSending}
+                    className="text-xs text-white/40 hover:text-white/60 transition-colors disabled:opacity-40"
+                  >
+                    Надіслати знову
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {milVerifyStep === "verified" && (
+            <div className="flex items-center gap-1.5 text-sm text-green-400 font-medium">
+              <ShieldCheck size={14} /> Статус верифіковано
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const DeleteSection = ({ profileId }: { profileId: string }) => {
+  const [showDeleteSection, setShowDeleteSection] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [showDeletePw, setShowDeletePw] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDelete = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!deletePassword) { toast.error("Введіть пароль для підтвердження"); return; }
+    setIsDeleting(true);
+    try {
+      const res = await fetch(`/api/profiles/${profileId}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: deletePassword }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) { toast.error(data.error || "Помилка видалення профілю"); return; }
+      toast.success("Профіль видалено");
+      window.location.href = "/sign-in";
+    } catch {
+      toast.error("Щось пішло не так");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  if (!showDeleteSection) {
+    return (
+      <button
+        type="button"
+        onClick={() => setShowDeleteSection(true)}
+        className="flex items-center gap-2 text-sm text-red-400/60 hover:text-red-400 transition-colors"
+      >
+        <Trash2 size={15} />
+        Видалити профіль
+      </button>
+    );
+  }
+
+  return (
+    <div className="max-w-sm p-5 rounded-2xl bg-red-500/8 border border-red-500/20">
+      <h3 className="font-semibold text-red-400 mb-1 flex items-center gap-2">
+        <Trash2 size={16} /> Видалення профілю
+      </h3>
+      <p className="text-xs text-white/40 mb-4">Ця дія незворотна. Введіть пароль для підтвердження.</p>
+      <form onSubmit={handleDelete} className="space-y-3">
+        <div className="relative">
+          <Input
+            type={showDeletePw ? "text" : "password"}
+            value={deletePassword}
+            onChange={(e) => setDeletePassword(e.target.value)}
+            placeholder="Ваш пароль"
+            required
+            className="bg-[#272523] border-white/10 text-white placeholder:text-white/30 pr-10 focus:border-[#FDAB04]/50 transition-colors"
+          />
+          <button
+            type="button"
+            onClick={() => setShowDeletePw((v) => !v)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white"
+          >
+            {showDeletePw ? <EyeOff size={15} /> : <Eye size={15} />}
+          </button>
+        </div>
+        <div className="flex gap-2">
+          <Button type="submit" disabled={isDeleting} className="bg-red-600 hover:bg-red-700 text-white text-sm">
+            {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Видалити"}
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => { setShowDeleteSection(false); setDeletePassword(""); }}
+            className="text-sm text-white/50 hover:text-white"
+          >
+            Скасувати
+          </Button>
+        </div>
+      </form>
+    </div>
+  );
+};
 
 const EditProfileForm = ({ profile, isOrganization, userEmail }: EditProfileFormProps) => {
   const router = useRouter();
@@ -32,65 +276,14 @@ const EditProfileForm = ({ profile, isOrganization, userEmail }: EditProfileForm
   const [address, setAddress] = useState((profile as OrganizationProfile).address || "");
   const [age, setAge] = useState((profile as ClientProfile).age?.toString() || "");
   const [isMilitary, setIsMilitary] = useState((profile as ClientProfile).isMilitary || false);
-  const [isMilitaryVerified, setIsMilitaryVerified] = useState((profile as ClientProfile).isMilitaryVerified || false);
-  const [milVerifyStep, setMilVerifyStep] = useState<"idle" | "code_sent" | "verified">(
-    (profile as ClientProfile).isMilitaryVerified ? "verified" : "idle"
-  );
-  const [milCode, setMilCode] = useState("");
-  const [milSending, setMilSending] = useState(false);
-  const [milConfirming, setMilConfirming] = useState(false);
-  const isMilEmail = userEmail.endsWith("@mil.gov.ua");
-  const phoneRegex = /^\+?[\d\s\-()()]{7,20}$/;
   const [isLoading, setIsLoading] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [showDeleteSection, setShowDeleteSection] = useState(false);
-  const [deletePassword, setDeletePassword] = useState("");
-  const [showDeletePw, setShowDeletePw] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
 
+  const isMilEmail = userEmail.endsWith("@mil.gov.ua");
   const edrpou = (profile as OrganizationProfile).edrpou as string | null | undefined;
 
-  const handleMilitaryToggle = (checked: boolean) => {
-    setIsMilitary(checked);
-    if (!checked) {
-      setIsMilitaryVerified(false);
-      setMilVerifyStep("idle");
-      setMilCode("");
-    }
-  };
-
-  const handleDelete = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!deletePassword) {
-      toast.error("Введіть пароль для підтвердження");
-      return;
-    }
-    setIsDeleting(true);
-    try {
-      const res = await fetch(`/api/profiles/${profile.id}`, {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password: deletePassword }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        toast.error(data.error || "Помилка видалення профілю");
-        return;
-      }
-      toast.success("Профіль видалено");
-      window.location.href = "/sign-in";
-    } catch {
-      toast.error("Щось пішло не так");
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
   const handleGenerateDescription = async () => {
-    if (!fullName.trim()) {
-      toast.error("Спочатку введіть назву організації");
-      return;
-    }
+    if (!fullName.trim()) { toast.error("Спочатку введіть назву організації"); return; }
     setIsGenerating(true);
     try {
       const res = await axios.post("/api/generate-description", {
@@ -112,70 +305,10 @@ const EditProfileForm = ({ profile, isOrganization, userEmail }: EditProfileForm
     }
   };
 
-  const handleSendMilCode = async () => {
-    setMilSending(true);
-    try {
-      const res = await fetch("/api/profile/verify-military", { method: "POST" });
-      const data = await res.json();
-      if (!res.ok) {
-        toast.error(data.error || "Помилка надсилання коду");
-        return;
-      }
-      setMilVerifyStep("code_sent");
-      setMilCode("");
-      toast.success("Код надіслано на вашу пошту");
-    } catch {
-      toast.error("Щось пішло не так");
-    } finally {
-      setMilSending(false);
-    }
-  };
-
-  const handleConfirmMilCode = async () => {
-    if (milCode.length !== 6) {
-      toast.error("Введіть 6-значний код");
-      return;
-    }
-    setMilConfirming(true);
-    try {
-      const res = await fetch("/api/profile/verify-military/confirm", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: milCode }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        toast.error(data.error || "Неправильний код");
-        return;
-      }
-      setMilVerifyStep("verified");
-      setIsMilitaryVerified(true);
-      toast.success("Військовий статус верифіковано!");
-    } catch {
-      toast.error("Щось пішло не так");
-    } finally {
-      setMilConfirming(false);
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!fullName.trim()) {
-      toast.error("Введіть ім'я / назву");
-      return;
-    }
-
-    if (phoneNumber && !phoneRegex.test(phoneNumber)) {
-      toast.error("Введіть коректний номер телефону (наприклад, +380XXXXXXXXX)");
-      return;
-    }
-
-    if (isOrganization && !description.trim()) {
-      toast.error("Опис організації обов'язковий");
-      return;
-    }
-
+    const error = validateProfileForm(fullName, phoneNumber, isOrganization, description);
+    if (error) { toast.error(error); return; }
     setIsLoading(true);
     try {
       await axios.patch(`/api/profiles/${profile.id}`, {
@@ -190,7 +323,6 @@ const EditProfileForm = ({ profile, isOrganization, userEmail }: EditProfileForm
         age: age ? parseInt(age) : null,
         isMilitary: isMilitary || null,
       });
-
       toast.success("Профіль оновлено!");
       router.refresh();
     } catch {
@@ -270,95 +402,12 @@ const EditProfileForm = ({ profile, isOrganization, userEmail }: EditProfileForm
                 <label className={lbl}>Вік</label>
                 <Input type="number" value={age} onChange={(e) => setAge(e.target.value)} placeholder="25" min={14} max={99} className={inp} />
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="isMilitary"
-                    checked={isMilitary}
-                    onChange={(e) => handleMilitaryToggle(e.target.checked)}
-                    className="h-4 w-4 accent-[#FDAB04]"
-                  />
-                  <label htmlFor="isMilitary" className="text-sm font-medium text-white/75 flex items-center gap-2">
-                    Я військовослужбовець
-                    {isMilitary && isMilitaryVerified && (
-                      <span className="flex items-center gap-1 text-xs text-green-400 font-semibold">
-                        <ShieldCheck size={13} /> Верифіковано
-                      </span>
-                    )}
-                    {isMilitary && !isMilitaryVerified && (
-                      <span className="flex items-center gap-1 text-xs text-yellow-400/80">
-                        <ShieldAlert size={13} /> Не верифіковано
-                      </span>
-                    )}
-                  </label>
-                </div>
-
-                {isMilitary && (
-                  <div className="mt-3 rounded-xl border border-yellow-500/20 bg-yellow-500/5 p-4 space-y-3">
-                    <div className="flex items-start gap-2 text-sm text-yellow-300/80">
-                      <AlertTriangle size={15} className="mt-0.5 shrink-0" />
-                      <p>
-                        Для підтвердження статусу військовослужбовця необхідна пошта домену{" "}
-                        <span className="font-semibold text-yellow-300">@mil.gov.ua</span>.
-                        {!isMilEmail && " Ваш статус буде збережено як неверифікований."}
-                      </p>
-                    </div>
-
-                    {isMilEmail && milVerifyStep !== "verified" && (
-                      <div className="space-y-2">
-                        {milVerifyStep === "idle" && (
-                          <button
-                            type="button"
-                            onClick={handleSendMilCode}
-                            disabled={milSending}
-                            className="flex items-center gap-1.5 text-sm font-medium text-[#FDAB04] hover:text-[#ebac66] transition-colors disabled:opacity-50"
-                          >
-                            {milSending ? <Loader2 size={13} className="animate-spin" /> : <ShieldCheck size={13} />}
-                            {milSending ? "Надсилання..." : "Верифікувати через пошту"}
-                          </button>
-                        )}
-
-                        {milVerifyStep === "code_sent" && (
-                          <div className="flex items-center gap-2">
-                            <Input
-                              type="text"
-                              inputMode="numeric"
-                              maxLength={6}
-                              value={milCode}
-                              onChange={(e) => setMilCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                              placeholder="Введіть 6-значний код"
-                              className="bg-[#272523] border-white/10 text-white placeholder:text-white/30 focus:border-[#FDAB04]/50 w-48 text-center tracking-widest text-lg font-bold"
-                            />
-                            <button
-                              type="button"
-                              onClick={handleConfirmMilCode}
-                              disabled={milConfirming || milCode.length < 6}
-                              className="px-3 py-2 rounded-lg bg-[#FDAB04] hover:bg-[#ebac66] text-black text-sm font-semibold transition-colors disabled:opacity-50"
-                            >
-                              {milConfirming ? <Loader2 size={14} className="animate-spin" /> : "Підтвердити"}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={handleSendMilCode}
-                              disabled={milSending}
-                              className="text-xs text-white/40 hover:text-white/60 transition-colors disabled:opacity-40"
-                            >
-                              Надіслати знову
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {milVerifyStep === "verified" && (
-                      <div className="flex items-center gap-1.5 text-sm text-green-400 font-medium">
-                        <ShieldCheck size={14} /> Статус верифіковано
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
+              <MilitarySection
+                isMilitary={isMilitary}
+                initialIsMilitaryVerified={(profile as ClientProfile).isMilitaryVerified || false}
+                isMilEmail={isMilEmail}
+                onToggle={setIsMilitary}
+              />
             </div>
           )}
 
@@ -399,57 +448,7 @@ const EditProfileForm = ({ profile, isOrganization, userEmail }: EditProfileForm
         </form>
 
         <div className="mt-10 border-t border-red-500/20 pt-6">
-          {!showDeleteSection ? (
-            <button
-              type="button"
-              onClick={() => setShowDeleteSection(true)}
-              className="flex items-center gap-2 text-sm text-red-400/60 hover:text-red-400 transition-colors"
-            >
-              <Trash2 size={15} />
-              Видалити профіль
-            </button>
-          ) : (
-            <div className="max-w-sm p-5 rounded-2xl bg-red-500/8 border border-red-500/20">
-              <h3 className="font-semibold text-red-400 mb-1 flex items-center gap-2">
-                <Trash2 size={16} /> Видалення профілю
-              </h3>
-              <p className="text-xs text-white/40 mb-4">
-                Ця дія незворотна. Введіть пароль для підтвердження.
-              </p>
-              <form onSubmit={handleDelete} className="space-y-3">
-                <div className="relative">
-                  <Input
-                    type={showDeletePw ? "text" : "password"}
-                    value={deletePassword}
-                    onChange={(e) => setDeletePassword(e.target.value)}
-                    placeholder="Ваш пароль"
-                    required
-                    className="bg-[#272523] border-white/10 text-white placeholder:text-white/30 pr-10 focus:border-[#FDAB04]/50 transition-colors"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowDeletePw((v) => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white"
-                  >
-                    {showDeletePw ? <EyeOff size={15} /> : <Eye size={15} />}
-                  </button>
-                </div>
-                <div className="flex gap-2">
-                  <Button type="submit" disabled={isDeleting} className="bg-red-600 hover:bg-red-700 text-white text-sm">
-                    {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Видалити"}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={() => { setShowDeleteSection(false); setDeletePassword(""); }}
-                    className="text-sm text-white/50 hover:text-white"
-                  >
-                    Скасувати
-                  </Button>
-                </div>
-              </form>
-            </div>
-          )}
+          <DeleteSection profileId={profile.id} />
         </div>
       </div>
     </div>

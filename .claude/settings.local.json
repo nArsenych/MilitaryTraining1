@@ -26,7 +26,8 @@
       "mcp__ide__getDiagnostics",
       "Bash(npx tsx *)",
       "Bash(Get-Item prisma\\\\ERD.svg)",
-      "Bash(Select-Object Name, Length, LastWriteTime)"
+      "Bash(Select-Object Name, Length, LastWriteTime)",
+      "PowerShell(Get-ChildItem -Path 'C:\\\\Users\\\\arsen\\\\MilitaryTraining-jwt-auth\\\\app\\\\api' -Filter 'route.ts' -Recurse | ForEach-Object { $_.FullName.Replace\\('C:\\\\Users\\\\arsen\\\\MilitaryTraining-jwt-auth\\\\', ''\\).Replace\\('\\\\', '/'\\) } | Sort-Object)"
     ]
   }
 }

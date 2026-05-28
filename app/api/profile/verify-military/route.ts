@@ -31,7 +31,8 @@ export async function POST() {
       return NextResponse.json({ error: "Профіль не знайдено" }, { status: 404 });
     }
 
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const { randomInt } = await import("crypto");
+    const code = randomInt(100000, 1000000).toString();
 
     await db.clientProfile.update({
       where: { user_id: session.userId },
