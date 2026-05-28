@@ -20,6 +20,13 @@ const inp = "bg-[#272523] border-white/10 text-white placeholder:text-white/30 f
 const lbl = "block text-xs font-semibold mb-1.5 text-white/60 uppercase tracking-wider";
 const PHONE_REGEX = /^\+?[\d\s\-()()]{7,20}$/;
 
+async function withLoading(set: (v: boolean) => void, fn: () => Promise<void>) {
+  set(true);
+  try { await fn(); }
+  catch { toast.error("Щось пішло не так"); }
+  finally { set(false); }
+}
+
 function validateProfileForm(
   fullName: string,
   phoneNumber: string,
@@ -53,41 +60,27 @@ const MilitarySection = ({ isMilitary, initialIsMilitaryVerified, isMilEmail, on
     if (!checked) { setMilVerifyStep("idle"); setMilCode(""); }
   };
 
-  const handleSendMilCode = async () => {
-    setMilSending(true);
-    try {
-      const res = await fetch("/api/profile/verify-military", { method: "POST" });
-      const data = await res.json();
-      if (!res.ok) { toast.error(data.error || "Помилка надсилання коду"); return; }
-      setMilVerifyStep("code_sent");
-      setMilCode("");
-      toast.success("Код надіслано на вашу пошту");
-    } catch {
-      toast.error("Щось пішло не так");
-    } finally {
-      setMilSending(false);
-    }
-  };
+  const handleSendMilCode = () => withLoading(setMilSending, async () => {
+    const res = await fetch("/api/profile/verify-military", { method: "POST" });
+    const data = await res.json();
+    if (!res.ok) { toast.error(data.error || "Помилка надсилання коду"); return; }
+    setMilVerifyStep("code_sent");
+    setMilCode("");
+    toast.success("Код надіслано на вашу пошту");
+  });
 
-  const handleConfirmMilCode = async () => {
+  const handleConfirmMilCode = () => withLoading(setMilConfirming, async () => {
     if (milCode.length !== 6) { toast.error("Введіть 6-значний код"); return; }
-    setMilConfirming(true);
-    try {
-      const res = await fetch("/api/profile/verify-military/confirm", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: milCode }),
-      });
-      const data = await res.json();
-      if (!res.ok) { toast.error(data.error || "Неправильний код"); return; }
-      setMilVerifyStep("verified");
-      toast.success("Військовий статус верифіковано!");
-    } catch {
-      toast.error("Щось пішло не так");
-    } finally {
-      setMilConfirming(false);
-    }
-  };
+    const res = await fetch("/api/profile/verify-military/confirm", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code: milCode }),
+    });
+    const data = await res.json();
+    if (!res.ok) { toast.error(data.error || "Неправильний код"); return; }
+    setMilVerifyStep("verified");
+    toast.success("Військовий статус верифіковано!");
+  });
 
   return (
     <div>
@@ -147,7 +140,7 @@ const MilitarySection = ({ isMilitary, initialIsMilitaryVerified, isMilEmail, on
                     value={milCode}
                     onChange={(e) => setMilCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
                     placeholder="Введіть 6-значний код"
-                    className="bg-[#272523] border-white/10 text-white placeholder:text-white/30 focus:border-[#FDAB04]/50 w-48 text-center tracking-widest text-lg font-bold"
+                    className={`${inp} w-48 text-center tracking-widest text-lg font-bold`}
                   />
                   <button
                     type="button"
@@ -187,11 +180,10 @@ const DeleteSection = ({ profileId }: { profileId: string }) => {
   const [showDeletePw, setShowDeletePw] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const handleDelete = async (e: React.FormEvent) => {
+  const handleDelete = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!deletePassword) { toast.error("Введіть пароль для підтвердження"); return; }
-    setIsDeleting(true);
-    try {
+    withLoading(setIsDeleting, async () => {
+      if (!deletePassword) { toast.error("Введіть пароль для підтвердження"); return; }
       const res = await fetch(`/api/profiles/${profileId}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
@@ -201,11 +193,7 @@ const DeleteSection = ({ profileId }: { profileId: string }) => {
       if (!res.ok) { toast.error(data.error || "Помилка видалення профілю"); return; }
       toast.success("Профіль видалено");
       window.location.href = "/sign-in";
-    } catch {
-      toast.error("Щось пішло не так");
-    } finally {
-      setIsDeleting(false);
-    }
+    });
   };
 
   if (!showDeleteSection) {
@@ -235,7 +223,7 @@ const DeleteSection = ({ profileId }: { profileId: string }) => {
             onChange={(e) => setDeletePassword(e.target.value)}
             placeholder="Ваш пароль"
             required
-            className="bg-[#272523] border-white/10 text-white placeholder:text-white/30 pr-10 focus:border-[#FDAB04]/50 transition-colors"
+            className={`${inp} pr-10`}
           />
           <button
             type="button"
@@ -282,35 +270,27 @@ const EditProfileForm = ({ profile, isOrganization, userEmail }: EditProfileForm
   const isMilEmail = userEmail.endsWith("@mil.gov.ua");
   const edrpou = (profile as OrganizationProfile).edrpou as string | null | undefined;
 
-  const handleGenerateDescription = async () => {
+  const handleGenerateDescription = () => withLoading(setIsGenerating, async () => {
     if (!fullName.trim()) { toast.error("Спочатку введіть назву організації"); return; }
-    setIsGenerating(true);
-    try {
-      const res = await axios.post("/api/generate-description", {
-        name: fullName,
-        edrpou: edrpou || undefined,
-        address,
-        phone: phoneNumber,
-        email: contactEmail,
-        instagram,
-        telegram,
-        facebook,
-      });
-      setDescription(res.data.description);
-      toast.success("Опис згенеровано! Ви можете його відредагувати.");
-    } catch {
-      toast.error("Не вдалося згенерувати опис");
-    } finally {
-      setIsGenerating(false);
-    }
-  };
+    const res = await axios.post("/api/generate-description", {
+      name: fullName,
+      edrpou: edrpou || undefined,
+      address,
+      phone: phoneNumber,
+      email: contactEmail,
+      instagram,
+      telegram,
+      facebook,
+    });
+    setDescription(res.data.description);
+    toast.success("Опис згенеровано! Ви можете його відредагувати.");
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const error = validateProfileForm(fullName, phoneNumber, isOrganization, description);
     if (error) { toast.error(error); return; }
-    setIsLoading(true);
-    try {
+    withLoading(setIsLoading, async () => {
       await axios.patch(`/api/profiles/${profile.id}`, {
         full_name: fullName,
         phone_number: phoneNumber || null,
@@ -320,16 +300,12 @@ const EditProfileForm = ({ profile, isOrganization, userEmail }: EditProfileForm
         facebook: facebook || null,
         description: description || null,
         address: address || null,
-        age: age ? parseInt(age) : null,
+        age: age ? Number.parseInt(age) : null,
         isMilitary: isMilitary || null,
       });
       toast.success("Профіль оновлено!");
       router.refresh();
-    } catch {
-      toast.error("Помилка оновлення профілю");
-    } finally {
-      setIsLoading(false);
-    }
+    });
   };
 
   return (
@@ -353,10 +329,11 @@ const EditProfileForm = ({ profile, isOrganization, userEmail }: EditProfileForm
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className={lbl}>
+            <label htmlFor="fullName" className={lbl}>
               {isOrganization ? "Назва організації *" : "Повне ім'я *"}
             </label>
             <Input
+              id="fullName"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               placeholder={isOrganization ? "Назва вашої організації" : "Ваше повне ім'я"}
@@ -369,15 +346,16 @@ const EditProfileForm = ({ profile, isOrganization, userEmail }: EditProfileForm
             <h2 className="text-lg font-semibold mb-2 text-[#ebac66]">Способи зв&apos;язку</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-3">
               {[
-                { label: "Телефон", value: phoneNumber, setter: setPhoneNumber, placeholder: "+380XXXXXXXXX", type: "text" },
-                { label: "Email для зв'язку", value: contactEmail, setter: setContactEmail, placeholder: "контакт@вашдомен.com", type: "email" },
-                { label: "Instagram", value: instagram, setter: setInstagram, placeholder: "@your_instagram", type: "text" },
-                { label: "Telegram", value: telegram, setter: setTelegram, placeholder: "@your_telegram", type: "text" },
-                { label: "Facebook", value: facebook, setter: setFacebook, placeholder: "facebook.com/your_page", type: "text" },
-              ].map(({ label, value, setter, placeholder, type }) => (
-                <div key={label}>
-                  <label className={lbl}>{label}</label>
+                { id: "phone", label: "Телефон", value: phoneNumber, setter: setPhoneNumber, placeholder: "+380XXXXXXXXX", type: "text" },
+                { id: "contactEmail", label: "Email для зв'язку", value: contactEmail, setter: setContactEmail, placeholder: "контакт@вашдомен.com", type: "email" },
+                { id: "instagram", label: "Instagram", value: instagram, setter: setInstagram, placeholder: "@your_instagram", type: "text" },
+                { id: "telegram", label: "Telegram", value: telegram, setter: setTelegram, placeholder: "@your_telegram", type: "text" },
+                { id: "facebook", label: "Facebook", value: facebook, setter: setFacebook, placeholder: "facebook.com/your_page", type: "text" },
+              ].map(({ id, label, value, setter, placeholder, type }) => (
+                <div key={id}>
+                  <label htmlFor={id} className={lbl}>{label}</label>
                   <Input
+                    id={id}
                     type={type}
                     value={value}
                     onChange={(e) => setter(e.target.value)}
@@ -391,16 +369,16 @@ const EditProfileForm = ({ profile, isOrganization, userEmail }: EditProfileForm
 
           {isOrganization && (
             <div>
-              <label className={lbl}>Адреса (опціонально)</label>
-              <Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="м. Київ, вул. ..." className={inp} />
+              <label htmlFor="address" className={lbl}>Адреса (опціонально)</label>
+              <Input id="address" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="м. Київ, вул. ..." className={inp} />
             </div>
           )}
 
           {!isOrganization && (
             <div className="border-t border-white/8 pt-3 mt-3 space-y-4">
               <div>
-                <label className={lbl}>Вік</label>
-                <Input type="number" value={age} onChange={(e) => setAge(e.target.value)} placeholder="25" min={14} max={99} className={inp} />
+                <label htmlFor="age" className={lbl}>Вік</label>
+                <Input id="age" type="number" value={age} onChange={(e) => setAge(e.target.value)} placeholder="25" min={14} max={99} className={inp} />
               </div>
               <MilitarySection
                 isMilitary={isMilitary}
@@ -413,7 +391,7 @@ const EditProfileForm = ({ profile, isOrganization, userEmail }: EditProfileForm
 
           <div className="border-t border-white/8 pt-3 mt-3">
             <div className="flex items-center justify-between mb-1">
-              <label className={lbl}>Опис {isOrganization && "*"}</label>
+              <label htmlFor="description" className={lbl}>Опис {isOrganization && "*"}</label>
               {isOrganization && (
                 <Button
                   type="button"
@@ -429,12 +407,13 @@ const EditProfileForm = ({ profile, isOrganization, userEmail }: EditProfileForm
               )}
             </div>
             <Textarea
+              id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder={isOrganization ? "Опишіть вашу організацію, її місію та послуги..." : "Розкажіть про себе (опціонально)..."}
               rows={5}
               required={isOrganization}
-              className="bg-[#272523] border-white/10 text-white placeholder:text-white/30 focus:border-[#FDAB04]/50 transition-colors resize-none"
+              className={`${inp} resize-none`}
             />
           </div>
 
