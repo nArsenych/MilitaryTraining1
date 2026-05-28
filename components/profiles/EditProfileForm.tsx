@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import toast from "react-hot-toast";
 import axios from "axios";
 import { Loader2, Sparkles, Lock, Trash2, Eye, EyeOff, ShieldCheck, ShieldAlert, AlertTriangle } from "lucide-react";
+import { PHONE_REGEX, validateProfileForm } from "@/lib/profile-validation";
 
 interface EditProfileFormProps {
   profile: ClientProfile | OrganizationProfile;
@@ -18,8 +19,6 @@ interface EditProfileFormProps {
 
 const inp = "bg-[#272523] border-white/10 text-white placeholder:text-white/30 focus:border-[#FDAB04]/50 transition-colors";
 const lbl = "block text-xs font-semibold mb-1.5 text-white/60 uppercase tracking-wider";
-const PHONE_REGEX = /^\+?[\d\s\-()()]{7,20}$/;
-
 async function withLoading(set: (v: boolean) => void, fn: () => Promise<void>) {
   set(true);
   try { await fn(); }
@@ -27,18 +26,6 @@ async function withLoading(set: (v: boolean) => void, fn: () => Promise<void>) {
   finally { set(false); }
 }
 
-function validateProfileForm(
-  fullName: string,
-  phoneNumber: string,
-  isOrganization: boolean,
-  description: string,
-): string | null {
-  if (!fullName.trim()) return "Введіть ім'я / назву";
-  if (phoneNumber && !PHONE_REGEX.test(phoneNumber))
-    return "Введіть коректний номер телефону (наприклад, +380XXXXXXXXX)";
-  if (isOrganization && !description.trim()) return "Опис організації обов'язковий";
-  return null;
-}
 
 interface MilitarySectionProps {
   isMilitary: boolean;

@@ -13,6 +13,7 @@ import {
   Loader2, Sparkles, User, Building2, Phone, Mail, Instagram, Send, Facebook, MapPin,
   ShieldCheck, ShieldAlert, AlertTriangle,
 } from "lucide-react";
+import { PHONE_REGEX, validateProfileForm } from "@/lib/profile-validation";
 
 export const dynamic = "force-dynamic";
 
@@ -35,19 +36,6 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-const PHONE_REGEX = /^\+?[\d\s\-()()]{7,20}$/;
-
-function validateProfileForm(
-  fullName: string,
-  phoneNumber: string,
-  isOrganization: boolean,
-  description: string,
-): string | null {
-  if (!fullName.trim()) return "Введіть ім'я / назву";
-  if (phoneNumber && !PHONE_REGEX.test(phoneNumber)) return "Введіть коректний номер телефону (наприклад, +380XXXXXXXXX)";
-  if (isOrganization && !description.trim()) return "Опис організації обов'язковий";
-  return null;
-}
 
 // ─── MilitaryCheckboxSection ──────────────────────────────────────────────────
 
@@ -299,7 +287,7 @@ export default function CreateProfilePage() {
         facebook: facebook || null,
         description: description || null,
         address: address || null,
-        age: age ? parseInt(age) : null,
+        age: age ? Number.parseInt(age) : null,
         isMilitary: isMilitary || null,
       });
       toast.success("Профіль створено!");

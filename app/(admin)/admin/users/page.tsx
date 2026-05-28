@@ -10,7 +10,7 @@ const AdminUsersPage = async ({
 }) => {
   const { search = "", page = "1" } = await searchParams;
   const take = 20;
-  const skip = (parseInt(page, 10) - 1) * take;
+  const skip = (Number.parseInt(page, 10) - 1) * take;
 
   const where = search
     ? { OR: [{ email: { contains: search } }, { name: { contains: search } }] }
@@ -49,7 +49,7 @@ const AdminUsersPage = async ({
           createdAt: u.createdAt.toISOString(),
         }))}
         total={total}
-        page={parseInt(page, 10)}
+        page={Number.parseInt(page, 10)}
         search={search}
       />
     </div>

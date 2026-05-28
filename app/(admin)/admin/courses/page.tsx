@@ -10,7 +10,7 @@ const AdminCoursesPage = async ({
 }) => {
   const { search = "", page = "1" } = await searchParams;
   const take = 20;
-  const skip = (parseInt(page, 10) - 1) * take;
+  const skip = (Number.parseInt(page, 10) - 1) * take;
 
   const where = search ? { title: { contains: search } } : undefined;
 
@@ -41,7 +41,7 @@ const AdminCoursesPage = async ({
       <AdminCoursesTable
         courses={courses.map((c) => ({ ...c, createdAt: c.createdAt.toISOString() }))}
         total={total}
-        page={parseInt(page, 10)}
+        page={Number.parseInt(page, 10)}
         search={search}
       />
     </div>

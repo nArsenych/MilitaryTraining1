@@ -74,7 +74,7 @@ const AdminUsersTable = ({ users, total, page, search: initialSearch }: Props) =
       const res = await fetch(`/api/admin/users/${blockModal.id}/block`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reason: blockReason, days: blockDays ? parseInt(blockDays, 10) : null }),
+        body: JSON.stringify({ reason: blockReason, days: blockDays ? Number.parseInt(blockDays, 10) : null }),
       });
       if (!res.ok) throw new Error();
       toast.success("Користувача заблоковано");

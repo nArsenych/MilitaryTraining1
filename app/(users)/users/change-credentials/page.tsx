@@ -12,7 +12,6 @@ export const dynamic = "force-dynamic";
 export default function ChangeCredentialsPage() {
   const { user, refreshAuth } = useAuth();
 
-  // email section
   const [emailCurrentPw, setEmailCurrentPw] = useState("");
   const [newEmail, setNewEmail] = useState("");
   const [emailLoading, setEmailLoading] = useState(false);
@@ -21,7 +20,6 @@ export default function ChangeCredentialsPage() {
   const [emailCode, setEmailCode] = useState("");
   const [confirmLoading, setConfirmLoading] = useState(false);
 
-  // password section
   const [pwCurrentPw, setPwCurrentPw] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -134,13 +132,11 @@ export default function ChangeCredentialsPage() {
     <div className="px-4 md:px-6 py-8 max-w-4xl">
       <h1 className="text-2xl font-bold text-white mb-6">Зміна облікових даних</h1>
 
-      {/* current account info */}
       <div className="mb-6 px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-sm text-white/50">
         Поточний email: <span className="text-white font-medium">{user?.email}</span>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* change email */}
         <div className="p-6 rounded-2xl bg-[#3D3A36] border border-white/10">
           <div className="flex items-center gap-2 mb-5">
             <Mail size={18} className="text-[#FDAB04]" />
@@ -150,8 +146,9 @@ export default function ChangeCredentialsPage() {
           {emailStep === "form" ? (
             <form onSubmit={handleEmailChange} className="space-y-4">
               <div>
-                <label className="block text-xs font-medium text-white/50 mb-1">Новий email</label>
+                <label htmlFor="newEmail" className="block text-xs font-medium text-white/50 mb-1">Новий email</label>
                 <Input
+                  id="newEmail"
                   type="email"
                   value={newEmail}
                   onChange={(e) => setNewEmail(e.target.value)}
@@ -160,9 +157,10 @@ export default function ChangeCredentialsPage() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-white/50 mb-1">Поточний пароль (підтвердження)</label>
+                <label htmlFor="emailCurrentPw" className="block text-xs font-medium text-white/50 mb-1">Поточний пароль (підтвердження)</label>
                 <div className="relative">
                   <Input
+                    id="emailCurrentPw"
                     type={showEmailPw ? "text" : "password"}
                     value={emailCurrentPw}
                     onChange={(e) => setEmailCurrentPw(e.target.value)}
@@ -185,8 +183,9 @@ export default function ChangeCredentialsPage() {
               </div>
               <form onSubmit={handleConfirmEmailCode} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-medium text-white/50 mb-1">6-значний код з листа</label>
+                  <label htmlFor="emailCode" className="block text-xs font-medium text-white/50 mb-1">6-значний код з листа</label>
                   <Input
+                    id="emailCode"
                     type="text"
                     inputMode="numeric"
                     maxLength={6}
@@ -219,7 +218,6 @@ export default function ChangeCredentialsPage() {
           )}
         </div>
 
-        {/* change password */}
         <div className="p-6 rounded-2xl bg-[#3D3A36] border border-white/10">
           <div className="flex items-center gap-2 mb-5">
             <KeyRound size={18} className="text-[#FDAB04]" />
@@ -227,9 +225,10 @@ export default function ChangeCredentialsPage() {
           </div>
           <form onSubmit={handlePasswordChange} className="space-y-4">
             <div>
-              <label className="block text-xs font-medium text-white/50 mb-1">Поточний пароль</label>
+              <label htmlFor="pwCurrentPw" className="block text-xs font-medium text-white/50 mb-1">Поточний пароль</label>
               <div className="relative">
                 <Input
+                  id="pwCurrentPw"
                   type={showCurrentPw ? "text" : "password"}
                   value={pwCurrentPw}
                   onChange={(e) => setPwCurrentPw(e.target.value)}
@@ -242,9 +241,10 @@ export default function ChangeCredentialsPage() {
               </div>
             </div>
             <div>
-              <label className="block text-xs font-medium text-white/50 mb-1">Новий пароль</label>
+              <label htmlFor="newPw" className="block text-xs font-medium text-white/50 mb-1">Новий пароль</label>
               <div className="relative">
                 <Input
+                  id="newPw"
                   type={showNewPw ? "text" : "password"}
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
@@ -258,8 +258,9 @@ export default function ChangeCredentialsPage() {
               </div>
             </div>
             <div>
-              <label className="block text-xs font-medium text-white/50 mb-1">Підтвердити новий пароль</label>
+              <label htmlFor="confirmPw" className="block text-xs font-medium text-white/50 mb-1">Підтвердити новий пароль</label>
               <Input
+                id="confirmPw"
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
