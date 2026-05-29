@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, useCallback, useMemo, ReactNode } from "react";
 
 interface User {
   id: string;
@@ -26,7 +26,7 @@ const AuthContext = createContext<AuthContextType>({
 
 export const useAuth = () => useContext(AuthContext);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -49,24 +49,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(async () => {
     await fetch("/api/auth/logout", { method: "POST" });
     setUser(null);
-    window.location.href = "/";
-    setTimeout(() => window.scrollTo(0, 0), 0);
+    globalThis.location.href = "/";
+    setTimeout(() => globalThis.scrollTo(0, 0), 0);
   }, []);
   
   useEffect(() => {
     refreshAuth();
   }, [refreshAuth]);
 
+  const contextValue = useMemo(
+    () => ({ user, isSignedIn: !!user, isLoading, refreshAuth, logout }),
+    [user, isLoading, refreshAuth, logout]
+  );
+
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        isSignedIn: !!user,
-        isLoading,
-        refreshAuth,
-        logout,
-      }}
-    >
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );

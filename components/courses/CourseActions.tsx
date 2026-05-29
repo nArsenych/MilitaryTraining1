@@ -75,20 +75,7 @@ const CourseActions = ({ courseId, courseTitle, courseEndDate }: CourseActionsPr
 
   return (
     <div className="flex items-center gap-2">
-      {/* Повторити */}
-      {!showRepeatForm ? (
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={!isCourseEnded}
-          title={!isCourseEnded ? "Курс ще не завершився" : undefined}
-          onClick={() => { setShowRepeatForm(true); setShowDeleteConfirm(false); }}
-          className="flex items-center gap-1.5 text-xs disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          <RefreshCw className="h-3 w-3" />
-          Повторити
-        </Button>
-      ) : (
+      {showRepeatForm ? (
         <div className="flex items-center gap-2 bg-white/8 border border-white/15 px-3 py-2 rounded-xl">
           <input
             type="date"
@@ -114,20 +101,21 @@ const CourseActions = ({ courseId, courseTitle, courseEndDate }: CourseActionsPr
             ✕
           </Button>
         </div>
-      )}
-
-      {/* Видалити */}
-      {!showDeleteConfirm ? (
+      ) : (
         <Button
           variant="outline"
           size="sm"
-          onClick={() => { setShowDeleteConfirm(true); setShowRepeatForm(false); }}
-          className="flex items-center gap-1.5 text-xs text-red-400 hover:text-red-300 border-red-500/30 hover:border-red-400/50 hover:bg-red-500/10"
+          disabled={!isCourseEnded}
+          title={!isCourseEnded ? "Курс ще не завершився" : undefined}
+          onClick={() => { setShowRepeatForm(true); setShowDeleteConfirm(false); }}
+          className="flex items-center gap-1.5 text-xs disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          <Trash2 className="h-3 w-3" />
-          Видалити
+          <RefreshCw className="h-3 w-3" />
+          Повторити
         </Button>
-      ) : (
+      )}
+
+      {showDeleteConfirm ? (
         <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 px-3 py-2 rounded-xl">
           <span className="text-sm text-red-400">Видалити?</span>
           <Button size="sm" variant="destructive" onClick={handleDelete} disabled={isDeleting}
@@ -139,6 +127,16 @@ const CourseActions = ({ courseId, courseTitle, courseEndDate }: CourseActionsPr
             Ні
           </Button>
         </div>
+      ) : (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => { setShowDeleteConfirm(true); setShowRepeatForm(false); }}
+          className="flex items-center gap-1.5 text-xs text-red-400 hover:text-red-300 border-red-500/30 hover:border-red-400/50 hover:bg-red-500/10"
+        >
+          <Trash2 className="h-3 w-3" />
+          Видалити
+        </Button>
       )}
     </div>
   );

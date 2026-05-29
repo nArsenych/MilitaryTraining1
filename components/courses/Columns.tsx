@@ -2,10 +2,9 @@
 
 import { Course } from "@prisma/client"
 import { ColumnDef } from "@tanstack/react-table"
-import { Pencil } from "lucide-react"
+import { Pencil, ArrowUpDown } from "lucide-react"
 import Link from "next/link"
 import { Badge } from "../ui/badge"
-import { ArrowUpDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 export const columns: ColumnDef<Course>[] = [
@@ -38,7 +37,7 @@ export const columns: ColumnDef<Course>[] = [
         },
         cell: ({ row }) => {
             const rawPrice = row.getValue("price") as string | number; 
-            const price = parseFloat(rawPrice as string) || 0.0;
+            const price = Number.parseFloat(rawPrice as string) || 0.0;
             const formatted = new Intl.NumberFormat("uk-UA", {
                 style: "currency",
                 currency: "UAH",

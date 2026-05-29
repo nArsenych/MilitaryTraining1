@@ -14,7 +14,7 @@ const AdminDeleteReviewButton = ({ reviewId }: { reviewId: string }) => {
     setLoading(true);
     try {
       const res = await fetch(`/api/admin/reviews/${reviewId}`, { method: "DELETE" });
-      if (!res.ok) throw new Error();
+      if (!res.ok) throw new Error("Failed to delete review");
       toast.success("Відгук видалено");
       router.refresh();
     } catch {

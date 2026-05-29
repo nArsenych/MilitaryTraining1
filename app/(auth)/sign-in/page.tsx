@@ -58,8 +58,9 @@ function SignInForm() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium mb-1">Електронна пошта</label>
+          <label htmlFor="email" className="block text-sm font-medium mb-1">Електронна пошта</label>
           <Input
+            id="email"
             type="email"
             placeholder="ваша@пошта.com"
             value={email}
@@ -69,8 +70,9 @@ function SignInForm() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">Пароль</label>
+          <label htmlFor="password" className="block text-sm font-medium mb-1">Пароль</label>
           <Input
+            id="password"
             type="password"
             placeholder="••••••••"
             value={password}

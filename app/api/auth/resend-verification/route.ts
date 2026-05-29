@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
 import { sendVerificationEmail } from "@/lib/email";
 import { NextRequest, NextResponse } from "next/server";
-import { randomInt } from "crypto";
+import { randomInt } from "node:crypto";
 
 function generateCode(): string {
   return randomInt(100000, 1000000).toString();

@@ -5,7 +5,7 @@ const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || "your-secret-key-change-in-production"
 );
 
-const publicRoutes = [
+const publicRoutes = new Set([
   "/",
   "/sign-in",
   "/sign-up",
@@ -21,17 +21,19 @@ const publicRoutes = [
   "/api/auth/verify-email",
   "/api/auth/resend-verification",
   "/api/uploadthing",
-];
+]);
+
+const staticExtension = new RegExp(String.raw`\.\w+$`);
 
 function isPublicRoute(pathname: string): boolean {
-  if (publicRoutes.includes(pathname)) return true;
+  if (publicRoutes.has(pathname)) return true;
   if (pathname.startsWith("/courses")) return true;
   if (pathname.startsWith("/categories")) return true;
   if (pathname.startsWith("/cities")) return true;
   if (pathname.startsWith("/organizations")) return true;
   if (pathname.startsWith("/profile")) return true;
   if (pathname.startsWith("/api/organizations/")) return true;
-  if (pathname.match(/\.\w+$/)) return true;
+  if (staticExtension.exec(pathname)) return true;
   if (pathname.startsWith("/_next")) return true;
   return false;
 }

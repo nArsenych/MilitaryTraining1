@@ -94,7 +94,6 @@ function VerifyEmailForm() {
     <div className="flex items-center justify-center min-h-screen bg-[#302E2B] px-4">
       <div className="w-full max-w-md">
         <div className="bg-white rounded-2xl shadow-lg p-8">
-          {/* header */}
           <div className="flex flex-col items-center mb-6">
             <div className="p-3 rounded-full bg-[#FDAB04]/10 mb-4">
               <Mail size={28} className="text-[#FDAB04]" />
@@ -106,11 +105,10 @@ function VerifyEmailForm() {
             </p>
           </div>
 
-          {/* code input */}
           <div className="flex gap-2 justify-center mb-6" onPaste={handlePaste}>
             {digits.map((d, i) => (
               <input
-                key={i}
+                key={`digit-${i}`}
                 ref={(el) => { refs.current[i] = el; }}
                 type="text"
                 inputMode="numeric"
@@ -125,7 +123,6 @@ function VerifyEmailForm() {
             ))}
           </div>
 
-          {/* confirm */}
           <button
             onClick={submit}
             disabled={loading || digits.join("").length < 6}
@@ -134,7 +131,6 @@ function VerifyEmailForm() {
             {loading ? "Перевірка..." : "Підтвердити"}
           </button>
 
-          {/* resend */}
           <div className="text-center">
             <button
               onClick={resend}

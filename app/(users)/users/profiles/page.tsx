@@ -5,14 +5,13 @@ import ReadText from "@/components/custom/ReadTwxt";
 
 export const dynamic = "force-dynamic";
 
-const CourseOverview = async ({ }: { params: { profileId: string } }) => {
+const CourseOverview = async () => {
   const session = await getSession();
 
   if (!session) {
     return redirect("/sign-in");
   }
 
-  // Try clientProfile first, then organizationProfile
   const clientProfile = await db.clientProfile.findUnique({
     where: { user_id: session.userId },
     include: {
@@ -58,7 +57,7 @@ const CourseOverview = async ({ }: { params: { profileId: string } }) => {
 
         <div className="flex flex-col gap-2">
           <p className="text-[#ebac66] font-bold">Опис:</p>
-          <ReadText value={clientProfile.description!} />
+          <ReadText value={clientProfile.description} />
         </div>
       </div>
     );
@@ -117,7 +116,7 @@ const CourseOverview = async ({ }: { params: { profileId: string } }) => {
 
       <div className="flex flex-col gap-2">
         <p className="text-[#ebac66] font-bold">Опис:</p>
-        <ReadText value={orgProfile.description!} />
+        <ReadText value={orgProfile.description} />
       </div>
     </div>
   );

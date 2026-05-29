@@ -13,13 +13,13 @@ import {
   Loader2, Sparkles, User, Building2, Phone, Mail, Instagram, Send, Facebook, MapPin,
   ShieldCheck, ShieldAlert, AlertTriangle,
 } from "lucide-react";
-import { PHONE_REGEX, validateProfileForm } from "@/lib/profile-validation";
+import { validateProfileForm } from "@/lib/profile-validation";
 
 export const dynamic = "force-dynamic";
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
-function FieldLabel({ children }: { children: React.ReactNode }) {
+function FieldLabel({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-1.5">
       {children}
@@ -27,7 +27,7 @@ function FieldLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, children }: Readonly<{ title: string; children: React.ReactNode }>) {
   return (
     <div className="rounded-2xl bg-[#3D3A36] border border-white/8 px-6 py-5 flex flex-col gap-4">
       <p className="text-xs font-semibold text-white/30 uppercase tracking-widest">{title}</p>
@@ -43,11 +43,11 @@ function MilitaryCheckboxSection({
   isMilitary,
   isMilEmail,
   onChange,
-}: {
+}: Readonly<{
   isMilitary: boolean;
   isMilEmail: boolean;
   onChange: (v: boolean) => void;
-}) {
+}>) {
   return (
     <div>
       <label className="flex items-center gap-3 cursor-pointer group">
@@ -89,7 +89,7 @@ function MilitaryCheckboxSection({
 
 // ─── MilitaryVerifyView ───────────────────────────────────────────────────────
 
-function MilitaryVerifyView({ onFinish }: { onFinish: () => void }) {
+function MilitaryVerifyView({ onFinish }: Readonly<{ onFinish: () => void }>) {
   const [milVerifyStep, setMilVerifyStep] = useState<"idle" | "code_sent" | "verified">("idle");
   const [milCode, setMilCode] = useState("");
   const [milSending, setMilSending] = useState(false);

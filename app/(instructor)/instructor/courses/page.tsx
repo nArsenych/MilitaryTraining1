@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { db } from "@/lib/db";
 import CourseActions from "@/components/courses/CourseActions";
-import { BookOpen, Users, Calendar, History, CheckCircle2, Clock } from "lucide-react";
+import { BookOpen, Users, Calendar, History, CheckCircle2 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -48,7 +48,6 @@ const CoursesPage = async () => {
           {courses.map((course) => (
             <div key={course.id} className="rounded-2xl bg-[#3D3A36] border border-white/10 overflow-hidden">
 
-              {/* header */}
               <div className="flex items-start justify-between px-5 py-4 border-b border-white/10">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2.5 flex-wrap">
@@ -77,7 +76,6 @@ const CoursesPage = async () => {
                 </div>
               </div>
 
-              {/* stats row */}
               <div className="flex items-center gap-6 px-5 py-3 border-b border-white/8">
                 <span className="flex items-center gap-1.5 text-xs text-white/50">
                   <Users size={12} className="text-[#FDAB04]" />
@@ -95,7 +93,6 @@ const CoursesPage = async () => {
                 )}
               </div>
 
-              {/* run history */}
               {course.runs.length > 0 && (
                 <div className="px-5 py-3">
                   <p className="flex items-center gap-1.5 text-[10px] font-semibold text-white/30 uppercase tracking-widest mb-2">

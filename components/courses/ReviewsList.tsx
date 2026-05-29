@@ -21,6 +21,12 @@ interface ReviewsListProps {
   canComplainAboutReview?: boolean;
 }
 
+function reviewWord(count: number): string {
+  if (count === 1) return "відгук";
+  if (count < 5) return "відгуки";
+  return "відгуків";
+}
+
 const ReviewsList = ({ reviews, avgRating, count, isAdmin, canComplainAboutReview }: ReviewsListProps) => {
   if (count === 0) {
     return (
@@ -30,16 +36,14 @@ const ReviewsList = ({ reviews, avgRating, count, isAdmin, canComplainAboutRevie
 
   return (
     <div className="flex flex-col gap-4">
-      {/* summary */}
       <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/5 border border-white/8 w-fit">
         <StarRating rating={Math.round(avgRating)} readonly size={18} />
         <span className="text-white font-semibold">{avgRating.toFixed(1)}</span>
         <span className="text-white/40 text-xs">
-          ({count} {count === 1 ? "відгук" : count < 5 ? "відгуки" : "відгуків"})
+          ({count} {reviewWord(count)})
         </span>
       </div>
 
-      {/* list */}
       <div className="flex flex-col gap-3">
         {reviews.map((review) => (
           <div key={review.id} className="rounded-xl bg-[#3D3A36] border border-white/8 px-4 py-3">

@@ -20,8 +20,8 @@ const StarRating = ({ rating, onRate, size = 20, readonly = false }: StarRatingP
             star <= rating
               ? "fill-yellow-400 text-yellow-400"
               : "fill-none text-gray-400"
-          } ${!readonly ? "cursor-pointer hover:text-yellow-400" : ""}`}
-          onClick={() => !readonly && onRate?.(star)}
+          } ${readonly ? "" : "cursor-pointer hover:text-yellow-400"}`}
+          onClick={() => readonly || onRate?.(star)}
         />
       ))}
     </div>

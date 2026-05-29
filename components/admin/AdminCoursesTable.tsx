@@ -44,7 +44,7 @@ const AdminCoursesTable = ({ courses, total, page, search: initialSearch }: Prop
     setLoading(true);
     try {
       const res = await fetch(`/api/admin/courses/${courseId}`, { method: "DELETE" });
-      if (!res.ok) throw new Error();
+      if (!res.ok) throw new Error("Failed to delete course");
       toast.success("Курс видалено");
       router.refresh();
     } catch {

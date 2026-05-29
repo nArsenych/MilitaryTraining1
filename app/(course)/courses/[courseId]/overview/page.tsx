@@ -102,11 +102,14 @@ const CourseOverview = async ({ params }: { params: Promise<{ courseId: string }
     ? Math.ceil((new Date(course.endDate).getTime() - new Date(course.startDate).getTime()) / 86400000)
     : null;
 
+  const endAgePart = course.endAge ? ` до ${course.endAge}` : "";
+  const ageValue = course.startAge ? `від ${course.startAge}${endAgePart} р.` : undefined;
+
   const meta = [
     { icon: Banknote, label: "Ціна",       value: course.price ? `${course.price} грн` : "Безкоштовно" },
     { icon: Tag,      label: "Рівень",     value: level?.name },
     { icon: MapPin,   label: "Місто",      value: city?.name },
-    { icon: Users,    label: "Вік",        value: course.startAge ? `від ${course.startAge}${course.endAge ? ` до ${course.endAge}` : ""} р.` : undefined },
+    { icon: Users,    label: "Вік",        value: ageValue },
     { icon: Calendar, label: "Початок",    value: fmt(course.startDate) },
     { icon: Calendar, label: "Кінець",     value: fmt(course.endDate) },
     { icon: Clock,    label: "Тривалість", value: durationDays ? `${durationDays} дн.` : undefined },
@@ -114,7 +117,6 @@ const CourseOverview = async ({ params }: { params: Promise<{ courseId: string }
 
   return (
     <div className="min-h-screen">
-      {/* ── Hero banner ── */}
       <div className="relative h-64 overflow-hidden">
         <Image
           src={course.imageUrl || "/course_backround.png"}
@@ -147,7 +149,6 @@ const CourseOverview = async ({ params }: { params: Promise<{ courseId: string }
         </div>
       </div>
 
-      {/* ── Content ── */}
       <div className="px-6 py-7 flex flex-col gap-7 max-w-3xl">
 
         <div className="flex flex-wrap gap-2">

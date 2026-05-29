@@ -25,7 +25,7 @@ export async function signToken(payload: SessionPayload): Promise<string> {
 export async function verifyToken(token: string): Promise<SessionPayload | null> {
   try {
     const { payload } = await jwtVerify(token, JWT_SECRET);
-    return payload as unknown as SessionPayload;
+    return payload as SessionPayload;
   } catch {
     return null;
   }
@@ -49,7 +49,7 @@ export async function setAuthCookie(token: string) {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
-    maxAge: 60 * 60 * 24 * 7, // 7 days
+    maxAge: 60 * 60 * 24 * 7,
     path: "/",
   });
 }
@@ -86,7 +86,7 @@ export async function isUserBlocked(userId: string): Promise<boolean> {
     where: { id: userId },
     select: { isBlocked: true, blockExpiry: true },
   });
-  if (!user || !user.isBlocked) return false;
+  if (!user?.isBlocked) return false;
   if (user.blockExpiry && new Date() > user.blockExpiry) {
     await db.user.update({ where: { id: userId }, data: { isBlocked: false, blockExpiry: null } });
     return false;

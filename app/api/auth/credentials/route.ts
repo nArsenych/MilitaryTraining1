@@ -33,7 +33,7 @@ async function handleEmailChange(user: NonNullable<UserRow>, newEmail: string | 
   if (existing) {
     return NextResponse.json({ error: "Цей email вже використовується" }, { status: 409 });
   }
-  const { randomInt } = await import("crypto");
+  const { randomInt } = await import("node:crypto");
   const verificationCode = randomInt(100000, 1000000).toString();
   await db.user.update({
     where: { id: user.id },
@@ -61,7 +61,7 @@ export async function PATCH(req: Request) {
 
     const { type, currentPassword, newEmail, newPassword, code } = await req.json();
 
-    const user = await db.user.findUnique({ where: { id: session.userId } }) as UserRow;
+    const user = await db.user.findUnique({ where: { id: session.userId } });
     if (!user) {
       return NextResponse.json({ error: "Користувача не знайдено" }, { status: 404 });
     }

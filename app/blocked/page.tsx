@@ -24,6 +24,15 @@ const BlockedPage = async () => {
   const fmt = (d: Date) =>
     d.toLocaleDateString("uk-UA", { day: "2-digit", month: "long", year: "numeric" });
 
+  let blockMessage: string;
+  if (isPermanent) {
+    blockMessage = "Ваш акаунт заблоковано назавжди адміністрацією платформи.";
+  } else if (blockExpiry) {
+    blockMessage = `Ваш акаунт тимчасово заблоковано до ${fmt(blockExpiry)}.`;
+  } else {
+    blockMessage = "Ваш акаунт заблоковано адміністрацією платформи.";
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#302E2B] px-4">
       <div className="max-w-md w-full text-center flex flex-col items-center gap-6">
@@ -33,13 +42,7 @@ const BlockedPage = async () => {
 
         <div>
           <h1 className="text-2xl font-black text-white mb-2">Акаунт заблоковано</h1>
-          <p className="text-white/50 text-sm leading-relaxed">
-            {isPermanent
-              ? "Ваш акаунт заблоковано назавжди адміністрацією платформи."
-              : blockExpiry
-              ? `Ваш акаунт тимчасово заблоковано до ${fmt(blockExpiry)}.`
-              : "Ваш акаунт заблоковано адміністрацією платформи."}
-          </p>
+          <p className="text-white/50 text-sm leading-relaxed">{blockMessage}</p>
         </div>
 
         <div className="rounded-xl bg-white/5 border border-white/10 px-5 py-4 text-sm text-white/60 text-left leading-relaxed">

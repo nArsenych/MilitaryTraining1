@@ -1,17 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Mail, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
-import { Suspense } from "react";
 
 function CheckEmailContent() {
   const searchParams = useSearchParams();
   const email = searchParams.get("email") || "";
   const [resending, setResending] = useState(false);
   const [resent, setResent] = useState(false);
+
+  const resendLabel = resent ? "Лист надіслано" : resending ? "Надсилання..." : "Надіслати повторно";
 
   const resend = async () => {
     if (!email) return;
@@ -59,7 +60,7 @@ function CheckEmailContent() {
             className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/8 border border-white/10 text-sm text-white/70 hover:bg-white/15 transition-colors disabled:opacity-40"
           >
             <RefreshCw size={14} className={resending ? "animate-spin" : ""} />
-            {resent ? "Лист надіслано" : resending ? "Надсилання..." : "Надіслати повторно"}
+            {resendLabel}
           </button>
         )}
 

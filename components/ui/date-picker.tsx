@@ -15,11 +15,11 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./select"
 
 interface DatePickerProps {
-  startYear?: number;
-  endYear?: number;
-  value?: Date | undefined;
-  onChange?: (date: Date | undefined) => void;
-  minDate?: Date;
+  readonly startYear?: number;
+  readonly endYear?: number;
+  readonly value?: Date;
+  readonly onChange?: (date: Date | undefined) => void;
+  readonly minDate?: Date;
 }
 
 function normalizeDate(d: Date): Date {

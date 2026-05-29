@@ -57,6 +57,15 @@ const TYPE_TABS = [
   { key: "organization", label: "На організації" },
 ];
 
+function getComplaintSender(c: Complaint): string {
+  if (c.type === "comment") {
+    return c.organization
+      ? (c.organization.full_name || c.organization.user.email)
+      : (c.user?.name || c.user?.email || "—");
+  }
+  return c.user.name || c.user.email;
+}
+
 const AdminComplaintsTable = ({ complaints, status, type }: Props) => {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -81,7 +90,7 @@ const AdminComplaintsTable = ({ complaints, status, type }: Props) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),
       });
-      if (!res.ok) throw new Error();
+      if (!res.ok) throw new Error("Failed to update complaint status");
       toast.success(newStatus === "RESOLVED" ? "Вирішено" : "Відхилено");
       router.refresh();
     } catch {
@@ -96,7 +105,7 @@ const AdminComplaintsTable = ({ complaints, status, type }: Props) => {
     setLoading(courseId);
     try {
       const res = await fetch(`/api/admin/courses/${courseId}`, { method: "DELETE" });
-      if (!res.ok) throw new Error();
+      if (!res.ok) throw new Error("Failed to delete course");
       toast.success("Курс видалено");
       router.refresh();
     } catch {
@@ -111,7 +120,7 @@ const AdminComplaintsTable = ({ complaints, status, type }: Props) => {
     setLoading(reviewId);
     try {
       const res = await fetch(`/api/admin/reviews/${reviewId}`, { method: "DELETE" });
-      if (!res.ok) throw new Error();
+      if (!res.ok) throw new Error("Failed to delete review");
       toast.success("Коментар видалено");
       router.refresh();
     } catch {
@@ -123,7 +132,7 @@ const AdminComplaintsTable = ({ complaints, status, type }: Props) => {
 
   return (
     <>
-      {/* filters */}
+
       <div className="flex flex-col gap-3 mb-6">
         <div className="flex gap-1 bg-white/5 border border-white/10 rounded-xl p-1 w-fit">
           {STATUS_TABS.map((t) => (
@@ -163,8 +172,7 @@ const AdminComplaintsTable = ({ complaints, status, type }: Props) => {
             <div key={c.id} className="rounded-2xl bg-[#3D3A36] border border-white/8 px-5 py-4">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
-                  {/* type badge */}
-                  <div className="flex items-center gap-2 mb-2">
+<div className="flex items-center gap-2 mb-2">
                     {c.type === "course" ? (
                       <span className="flex items-center gap-1.5 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300">
                         <BookOpen size={10} />
@@ -186,8 +194,7 @@ const AdminComplaintsTable = ({ complaints, status, type }: Props) => {
                     </span>
                   </div>
 
-                  {/* subject */}
-                  {c.type === "course" ? (
+{c.type === "course" ? (
                     <p className="text-white font-semibold text-sm mb-0.5 line-clamp-1">
                       Курс: {c.course.title}
                     </p>
@@ -203,22 +210,15 @@ const AdminComplaintsTable = ({ complaints, status, type }: Props) => {
 
                   {/* from */}
                   <p className="text-white/40 text-xs mb-3">
-                    Від:{" "}
-                    {c.type === "comment"
-                      ? (c.organization
-                          ? (c.organization.full_name || c.organization.user.email)
-                          : (c.user?.name || c.user?.email || "—"))
-                      : (c.user.name || c.user.email)}
+                    Від: {getComplaintSender(c)}
                   </p>
 
-                  {/* reason */}
-                  <div className="rounded-xl bg-[#302E2B] border border-white/8 px-4 py-3 text-sm text-white/70 leading-relaxed">
+<div className="rounded-xl bg-[#302E2B] border border-white/8 px-4 py-3 text-sm text-white/70 leading-relaxed">
                     {c.reason}
                   </div>
                 </div>
 
-                {/* actions */}
-                {status === "PENDING" && (
+{status === "PENDING" && (
                   <div className="flex flex-col gap-2 shrink-0">
                     {c.type === "course" && (
                       <button

@@ -25,27 +25,21 @@ const Organizations = ({ courses, selectedOrganization }: OrganizationsProps) =>
     const fetchOrganizations = async () => {
       try {
         const uniqueOrgIds = Array.from(new Set(courses.map(course => course.organizationId)));
-        console.log("Unique organization IDs:", uniqueOrgIds); 
-        
+
         const orgs = await Promise.all(
           uniqueOrgIds.map(async (orgId) => {
-            if (!orgId) return null; 
-            
+            if (!orgId) return null;
+
             try {
-              const response = await fetch(`/api/organizations/${orgId}`, { 
-                headers: {
-                  'Content-Type': 'application/json',
-                }
+              const response = await fetch(`/api/organizations/${orgId}`, {
+                headers: { 'Content-Type': 'application/json' },
               });
-              
-              if (!response.ok) {
-                throw new Error(`Error fetching organization ${orgId}`);
-              }
+
+              if (!response.ok) return null;
 
               const data = await response.json();
-              console.log(`Organization data for ${orgId}:`, data);
-              
-              let fullName = "Unknown User";
+
+              let fullName = "Невідома організація";
               if (data.firstName && data.lastName) {
                 fullName = `${data.firstName} ${data.lastName}`;
               } else if (data.firstName) {
@@ -53,23 +47,17 @@ const Organizations = ({ courses, selectedOrganization }: OrganizationsProps) =>
               } else if (data.lastName) {
                 fullName = data.lastName;
               }
-              
-              return {
-                id: orgId,
-                fullName
-              };
-            } catch (error) {
-              console.error(`Error fetching organization ${orgId}:`, error);
+
+              return { id: orgId, fullName };
+            } catch {
               return null;
             }
           })
         );
-        
-        const validOrgs = orgs.filter((org): org is OrganizationInfo => org !== null);
-        console.log("Final organizations data:", validOrgs);
-        setOrganizations(validOrgs);
-      } catch (error) {
-        console.error("Error in fetchOrganizations:", error);
+
+        setOrganizations(orgs.filter((org): org is OrganizationInfo => org !== null));
+      } catch {
+        // silently ignore
       } finally {
         setLoading(false);
       }
@@ -87,7 +75,7 @@ const Organizations = ({ courses, selectedOrganization }: OrganizationsProps) =>
   };
 
   if (loading) {
-    return <div>Loading organizations...</div>;
+    return <div>Завантаження...</div>;
   }
 
   return (

@@ -55,7 +55,7 @@ const AdminUsersTable = ({ users, total, page, search: initialSearch }: Props) =
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ reason: warnReason }),
       });
-      if (!res.ok) throw new Error();
+      if (!res.ok) throw new Error("Failed to send warning");
       toast.success("Попередження надіслано");
       setWarnModal(null);
       setWarnReason("");
@@ -76,7 +76,7 @@ const AdminUsersTable = ({ users, total, page, search: initialSearch }: Props) =
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ reason: blockReason, days: blockDays ? Number.parseInt(blockDays, 10) : null }),
       });
-      if (!res.ok) throw new Error();
+      if (!res.ok) throw new Error("Failed to block user");
       toast.success("Користувача заблоковано");
       setBlockModal(null);
       setBlockReason("");
@@ -93,7 +93,7 @@ const AdminUsersTable = ({ users, total, page, search: initialSearch }: Props) =
     setLoading(true);
     try {
       const res = await fetch(`/api/admin/users/${userId}/block`, { method: "DELETE" });
-      if (!res.ok) throw new Error();
+      if (!res.ok) throw new Error("Failed to unblock user");
       toast.success("Блокування знято");
       router.refresh();
     } catch {
@@ -103,8 +103,11 @@ const AdminUsersTable = ({ users, total, page, search: initialSearch }: Props) =
     }
   };
 
-  const roleLabel = (r: string) =>
-    r === "ADMIN" ? "Адмін" : r === "ORGANIZATION" ? "Організація" : "Клієнт";
+  const roleLabel = (r: string) => {
+    if (r === "ADMIN") return "Адмін";
+    if (r === "ORGANIZATION") return "Організація";
+    return "Клієнт";
+  };
 
   const roleBadge = (r: string) => {
     if (r === "ADMIN") return "bg-red-500/20 text-red-300";

@@ -64,8 +64,9 @@ export default function SignUpPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Ім&apos;я</label>
+            <label htmlFor="name" className="block text-sm font-medium mb-1">Ім&apos;я</label>
             <Input
+              id="name"
               type="text"
               placeholder="Ваше ім'я"
               value={name}
@@ -74,8 +75,9 @@ export default function SignUpPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Електронна пошта</label>
+            <label htmlFor="email" className="block text-sm font-medium mb-1">Електронна пошта</label>
             <Input
+              id="email"
               type="email"
               placeholder="ваша@пошта.com"
               value={email}
@@ -85,8 +87,9 @@ export default function SignUpPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Пароль</label>
+            <label htmlFor="password" className="block text-sm font-medium mb-1">Пароль</label>
             <Input
+              id="password"
               type="password"
               placeholder="Мінімум 6 символів"
               value={password}
@@ -97,10 +100,11 @@ export default function SignUpPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">
+            <label htmlFor="confirmPassword" className="block text-sm font-medium mb-1">
               Підтвердити пароль
             </label>
             <Input
+              id="confirmPassword"
               type="password"
               placeholder="Повторіть пароль"
               value={confirmPassword}

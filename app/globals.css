@@ -77,44 +77,10 @@ body,
 }
  
 
-/* .cl-rootBox {
-  background-color: #302E2B;
-}
-
-.cl-cardBox {
-  background-color: #302E2B;
-} */
-/* 
-.cl-card {
-  background-color: #302E2B;
-} */
-
-/* .cl-footer {
-  margin: -3%;
-  background-color: #302E2B;
-}
-
-.cl-footerAction {
-  width: 100%;
-  padding: 0;
-  margin: 0;
-  justify-content: center;
-  background-color: #302E2B;
-  
-}
-
-.cl-footerActionLink {
-  color: #D7A772;
-} */
-
 .cl-formButtonPrimary {
   color: black;
   background-color: #D7A772;
 }
-
-/* .cl-formButtonPrimary:hover {
-  background-color: rgba(249, 204, 153, 0.8);
-} */
 
 
 .grid {
