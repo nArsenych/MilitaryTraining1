@@ -23,7 +23,7 @@ const publicRoutes = new Set([
   "/api/uploadthing",
 ]);
 
-const staticExtension = new RegExp(String.raw`\.\w+$`);
+const staticExtension = /\.\w+$/;
 
 function isPublicRoute(pathname: string): boolean {
   if (publicRoutes.has(pathname)) return true;
@@ -64,7 +64,7 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!.+\\.[\\w]+$|_next).*)",
+    String.raw`/((?!.+\.\w+$|_next).*)`,
     "/",
     "/(api|trpc)(.*)",
   ],

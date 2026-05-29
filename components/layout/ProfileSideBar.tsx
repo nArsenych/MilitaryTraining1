@@ -26,9 +26,9 @@ const ProfileSidebar = ({ profile, isOrganization }: ProfileSidebarProps) => {
     { href: "/users/profiles",               label: "Профіль",    icon: Eye },
     { href: `/users/profiles/${profile.id}`, label: "Редагувати", icon: UserCog },
     { href: "/users/change-credentials",     label: "Пароль",     icon: KeyRound },
-    ...(!isOrganization
-      ? [{ href: "/my-courses", label: "Курси", icon: BookOpen }]
-      : []),
+    ...(isOrganization
+      ? []
+      : [{ href: "/my-courses", label: "Курси", icon: BookOpen }]),
   ];
 
   return (

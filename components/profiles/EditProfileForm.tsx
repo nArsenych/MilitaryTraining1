@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import toast from "react-hot-toast";
 import axios from "axios";
 import { Loader2, Sparkles, Lock, Trash2, Eye, EyeOff, ShieldCheck, ShieldAlert, AlertTriangle } from "lucide-react";
-import { PHONE_REGEX, validateProfileForm } from "@/lib/profile-validation";
+import { validateProfileForm } from "@/lib/profile-validation";
 
 interface EditProfileFormProps {
   profile: ClientProfile | OrganizationProfile;
@@ -179,7 +179,7 @@ const DeleteSection = ({ profileId }: { profileId: string }) => {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) { toast.error(data.error || "Помилка видалення профілю"); return; }
       toast.success("Профіль видалено");
-      window.location.href = "/sign-in";
+      globalThis.location.href = "/sign-in";
     });
   };
 

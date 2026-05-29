@@ -6,14 +6,10 @@ import toast from "react-hot-toast";
 
 interface EnrollButtonProps {
   courseId: string;
-  studentId: string;
   className?: string;
 }
 
-export const EnrollButton = ({
-  courseId,
-  className
-}: EnrollButtonProps) => {
+export const EnrollButton = ({ courseId, className }: EnrollButtonProps) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const onClick = async () => {
@@ -21,10 +17,8 @@ export const EnrollButton = ({
       setIsLoading(true);
 
       const response = await axios.post(`/api/courses/${courseId}/enroll`);
-      console.log("Enrollment response:", response.data); 
-
       toast.success("Ви успішно записались на курс!");
-      window.location.reload();
+      globalThis.location.reload();
     } catch (err: any) {
       const msg = err?.response?.data?.error || "Щось пішло не так";
       toast.error(msg);

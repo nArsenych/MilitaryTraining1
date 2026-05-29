@@ -18,7 +18,7 @@ const CROP_THRESHOLD = 0.05;
 
 function processImage(file: File): Promise<File | null> {
   return new Promise((resolve) => {
-    const img = new window.Image();
+    const img = new globalThis.Image();
     const url = URL.createObjectURL(file);
 
     img.onload = () => {

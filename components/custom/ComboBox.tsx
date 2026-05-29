@@ -19,9 +19,9 @@ import {
 } from "@/components/ui/popover"
 
 interface ComboBoxProps {
-  options: { label: string, value: string }[]
-  value?: string
-  onChange: (value: string) => void
+  readonly options: { label: string, value: string }[]
+  readonly value?: string
+  readonly onChange: (value: string) => void
 }
 
 export function ComboBox({ options, value, onChange }: ComboBoxProps) {

@@ -100,13 +100,10 @@ const Topbar = () => {
             {mobileMenuOpen && (
                 <div className="fixed inset-0 z-50 md:hidden">
                     {/* Fix #1 & #2: role + tabIndex + onKeyDown on the clickable backdrop */}
-                    <div
-                        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-                        role="button"
-                        tabIndex={0}
+                    <button
+                        className="absolute inset-0 bg-black/70 backdrop-blur-sm w-full h-full"
                         aria-label="Закрити меню"
                         onClick={() => setMobileMenuOpen(false)}
-                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === "Escape") setMobileMenuOpen(false); }}
                     />
                     <div className="absolute top-0 right-0 h-full w-72 bg-[#272523] flex flex-col p-6 shadow-2xl">
                         <div className="flex items-center justify-between mb-8">

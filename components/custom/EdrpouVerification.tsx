@@ -80,54 +80,50 @@ const EdrpouVerification = ({ edrpou, setEdrpou, onVerified }: EdrpouVerificatio
 
       {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
 
-      {result && (
-        <div className="mt-3">
-          {result.hasSanctions && (
-            <div className="flex items-start gap-2 p-3 rounded-lg bg-red-100 border border-red-300">
-              <ShieldAlert className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
-              <div>
-                <p className="text-sm font-semibold text-red-700">
-                  Організація під санкціями!
-                </p>
-                {result.sanctions.map((s) => (
-                  <p key={s.id} className="text-xs text-red-600 mt-1">
-                    {s.name} — {s.sanctions_type}
-                  </p>
-                ))}
-                <p className="text-xs text-red-600 mt-1 font-medium">
-                  Реєстрація заборонена.
-                </p>
-              </div>
-            </div>
-          )}
+      {result?.hasSanctions && (
+        <div className="mt-3 flex items-start gap-2 p-3 rounded-lg bg-red-100 border border-red-300">
+          <ShieldAlert className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
+          <div>
+            <p className="text-sm font-semibold text-red-700">
+              Організація під санкціями!
+            </p>
+            {result.sanctions.map((s) => (
+              <p key={s.id} className="text-xs text-red-600 mt-1">
+                {s.name} — {s.sanctions_type}
+              </p>
+            ))}
+            <p className="text-xs text-red-600 mt-1 font-medium">
+              Реєстрація заборонена.
+            </p>
+          </div>
+        </div>
+      )}
 
-          {result.exists && !result.hasSanctions && (
-            <div className="flex items-start gap-2 p-3 rounded-lg bg-green-100 border border-green-300">
-              <ShieldCheck className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
-              <div>
-                <p className="text-sm font-semibold text-green-700">
-                  Організацію підтверджено ✓
-                </p>
-                <p className="text-xs text-green-600 mt-1">
-                  ЄДРПОУ {edrpou} знайдено в реєстрі. Санкцій не виявлено.
-                </p>
-              </div>
-            </div>
-          )}
+      {result?.exists && !result?.hasSanctions && (
+        <div className="mt-3 flex items-start gap-2 p-3 rounded-lg bg-green-100 border border-green-300">
+          <ShieldCheck className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+          <div>
+            <p className="text-sm font-semibold text-green-700">
+              Організацію підтверджено ✓
+            </p>
+            <p className="text-xs text-green-600 mt-1">
+              ЄДРПОУ {edrpou} знайдено в реєстрі. Санкцій не виявлено.
+            </p>
+          </div>
+        </div>
+      )}
 
-          {!result.exists && !result.hasSanctions && (
-            <div className="flex items-start gap-2 p-3 rounded-lg bg-yellow-100 border border-yellow-300">
-              <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5 flex-shrink-0" />
-              <div>
-                <p className="text-sm font-semibold text-yellow-700">
-                  Організацію не знайдено
-                </p>
-                <p className="text-xs text-yellow-600 mt-1">
-                  ЄДРПОУ {edrpou} не знайдено в реєстрі. Перевірте правильність коду.
-                </p>
-              </div>
-            </div>
-          )}
+      {result && !result?.exists && !result?.hasSanctions && (
+        <div className="mt-3 flex items-start gap-2 p-3 rounded-lg bg-yellow-100 border border-yellow-300">
+          <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+          <div>
+            <p className="text-sm font-semibold text-yellow-700">
+              Організацію не знайдено
+            </p>
+            <p className="text-xs text-yellow-600 mt-1">
+              ЄДРПОУ {edrpou} не знайдено в реєстрі. Перевірте правильність коду.
+            </p>
+          </div>
         </div>
       )}
     </div>

@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { Flag } from "lucide-react";
 import toast from "react-hot-toast";
-import Link from "next/link";
 
 interface Props {
   organizationId: string;
