@@ -57,7 +57,7 @@ const CourseOverview = async () => {
 
         <div className="flex flex-col gap-2">
           <p className="text-[#ebac66] font-bold">Опис:</p>
-          <ReadText value={clientProfile.description} />
+          <ReadText value={clientProfile.description ?? ""} />
         </div>
       </div>
     );
@@ -116,7 +116,7 @@ const CourseOverview = async () => {
 
       <div className="flex flex-col gap-2">
         <p className="text-[#ebac66] font-bold">Опис:</p>
-        <ReadText value={orgProfile.description} />
+        <ReadText value={orgProfile.description ?? ""} />
       </div>
     </div>
   );

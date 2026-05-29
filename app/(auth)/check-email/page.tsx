@@ -12,7 +12,14 @@ function CheckEmailContent() {
   const [resending, setResending] = useState(false);
   const [resent, setResent] = useState(false);
 
-  const resendLabel = resent ? "Лист надіслано" : resending ? "Надсилання..." : "Надіслати повторно";
+  let resendLabel: string;
+  if (resent) {
+    resendLabel = "Лист надіслано";
+  } else if (resending) {
+    resendLabel = "Надсилання...";
+  } else {
+    resendLabel = "Надіслати повторно";
+  }
 
   const resend = async () => {
     if (!email) return;
