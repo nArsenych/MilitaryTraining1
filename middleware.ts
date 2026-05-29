@@ -64,7 +64,7 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    String.raw`/((?!.+\.\w+$|_next).*)`,
+    "/((?!.+\\.\\w+$|_next).*)",
     "/",
     "/(api|trpc)(.*)",
   ],
