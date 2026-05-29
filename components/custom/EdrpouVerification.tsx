@@ -113,7 +113,7 @@ const EdrpouVerification = ({ edrpou, setEdrpou, onVerified }: EdrpouVerificatio
         </div>
       )}
 
-      {result && !result?.exists && !result?.hasSanctions && (
+      {result?.exists === false && result?.hasSanctions === false && (
         <div className="mt-3 flex items-start gap-2 p-3 rounded-lg bg-yellow-100 border border-yellow-300">
           <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5 flex-shrink-0" />
           <div>

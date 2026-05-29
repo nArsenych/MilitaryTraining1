@@ -17,6 +17,12 @@ interface ReviewsListProps {
   count: number;
 }
 
+function reviewWord(count: number): string {
+  if (count === 1) return "відгук";
+  if (count < 5) return "відгуки";
+  return "відгуків";
+}
+
 const ReviewsList = ({ reviews, avgRating, count }: ReviewsListProps) => {
   if (count === 0) {
     return (
@@ -31,7 +37,7 @@ const ReviewsList = ({ reviews, avgRating, count }: ReviewsListProps) => {
       <div className="flex items-center gap-3 mb-4">
         <StarRating rating={Math.round(avgRating)} readonly size={22} />
         <span className="text-lg font-semibold">{avgRating.toFixed(1)}</span>
-        <span className="text-sm text-gray-400">({count} {count === 1 ? "відгук" : count < 5 ? "відгуки" : "відгуків"})</span>
+        <span className="text-sm text-gray-400">({count} {reviewWord(count)})</span>
       </div>
 
       <div className="space-y-3">
