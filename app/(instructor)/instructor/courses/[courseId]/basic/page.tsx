@@ -63,7 +63,7 @@ const CourseBasics = async ({ params }: PageProps) => {
     course.endDate,
   ];
   const requiredFieldsCount = requiredFields.length;
-  const missingFields = requiredFields.filter((field) => !Boolean(field));
+  const missingFields = requiredFields.filter((field) => !field);
   const missingFieldsCount = missingFields.length;
   const isCompleted = requiredFields.every(Boolean);
 

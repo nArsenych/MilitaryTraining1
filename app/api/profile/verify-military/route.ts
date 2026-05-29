@@ -31,7 +31,7 @@ export async function POST() {
       return NextResponse.json({ error: "Профіль не знайдено" }, { status: 404 });
     }
 
-    const { randomInt } = await import("crypto");
+    const { randomInt } = await import("node:crypto");
     const code = randomInt(100000, 1000000).toString();
 
     await db.clientProfile.update({

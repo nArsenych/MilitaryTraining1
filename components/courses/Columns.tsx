@@ -37,7 +37,7 @@ export const columns: ColumnDef<Course>[] = [
         },
         cell: ({ row }) => {
             const rawPrice = row.getValue("price") as string | number; 
-            const price = Number.parseFloat(rawPrice as string) || 0.0;
+            const price = Number.parseFloat(rawPrice as string) || 0;
             const formatted = new Intl.NumberFormat("uk-UA", {
                 style: "currency",
                 currency: "UAH",

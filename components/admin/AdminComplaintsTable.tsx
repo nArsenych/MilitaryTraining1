@@ -78,12 +78,14 @@ const AdminComplaintsTable = ({ complaints, status, type }: Props) => {
 
   const resolve = async (complaint: Complaint, newStatus: "RESOLVED" | "DISMISSED") => {
     setLoading(complaint.id);
-    const path =
-      complaint.type === "course"
-        ? `/api/admin/complaints/course/${complaint.id}`
-        : complaint.type === "comment"
-        ? `/api/admin/complaints/comment/${complaint.id}`
-        : `/api/admin/complaints/organization/${complaint.id}`;
+    let path: string;
+    if (complaint.type === "course") {
+      path = `/api/admin/complaints/course/${complaint.id}`;
+    } else if (complaint.type === "comment") {
+      path = `/api/admin/complaints/comment/${complaint.id}`;
+    } else {
+      path = `/api/admin/complaints/organization/${complaint.id}`;
+    }
     try {
       const res = await fetch(path, {
         method: "PATCH",

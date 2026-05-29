@@ -106,7 +106,7 @@ const CourseActions = ({ courseId, courseTitle, courseEndDate }: CourseActionsPr
           variant="outline"
           size="sm"
           disabled={!isCourseEnded}
-          title={!isCourseEnded ? "Курс ще не завершився" : undefined}
+          title={isCourseEnded ? undefined : "Курс ще не завершився"}
           onClick={() => { setShowRepeatForm(true); setShowDeleteConfirm(false); }}
           className="flex items-center gap-1.5 text-xs disabled:opacity-40 disabled:cursor-not-allowed"
         >

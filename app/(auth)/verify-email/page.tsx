@@ -7,6 +7,8 @@ import { Mail, RefreshCw } from "lucide-react";
 import toast from "react-hot-toast";
 import Link from "next/link";
 
+const DIGIT_SLOTS = ["s0", "s1", "s2", "s3", "s4", "s5"] as const;
+
 function VerifyEmailForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -108,7 +110,7 @@ function VerifyEmailForm() {
           <div className="flex gap-2 justify-center mb-6" onPaste={handlePaste}>
             {digits.map((d, i) => (
               <input
-                key={`digit-${i}`}
+                key={DIGIT_SLOTS[i]}
                 ref={(el) => { refs.current[i] = el; }}
                 type="text"
                 inputMode="numeric"

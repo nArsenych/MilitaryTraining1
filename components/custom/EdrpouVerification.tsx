@@ -46,9 +46,10 @@ const EdrpouVerification = ({ edrpou, setEdrpou, onVerified }: EdrpouVerificatio
 
   return (
     <div>
-      <label className="block text-sm font-medium mb-1">Код ЄДРПОУ</label>
+      <label htmlFor="edrpou" className="block text-sm font-medium mb-1">Код ЄДРПОУ</label>
       <div className="flex gap-2">
         <Input
+          id="edrpou"
           value={edrpou}
           onChange={(e) => {
             const val = e.target.value.replace(/\D/g, "").slice(0, 8);
