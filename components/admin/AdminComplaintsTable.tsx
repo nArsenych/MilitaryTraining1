@@ -66,6 +66,53 @@ function getComplaintSender(c: Complaint): string {
   return c.user.name || c.user.email;
 }
 
+function ComplaintTypeBadge({ type }: { readonly type: Complaint["type"] }) {
+  if (type === "course") {
+    return (
+      <span className="flex items-center gap-1.5 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300">
+        <BookOpen size={10} />
+        Скарга на курс
+      </span>
+    );
+  }
+  if (type === "comment") {
+    return (
+      <span className="flex items-center gap-1.5 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300">
+        <MessageSquare size={10} />
+        Скарга на коментар
+      </span>
+    );
+  }
+  return (
+    <span className="flex items-center gap-1.5 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-300">
+      <Building2 size={10} />
+      Скарга на організацію
+    </span>
+  );
+}
+
+function ComplaintSubject({ c }: { readonly c: Complaint }) {
+  if (c.type === "course") {
+    return (
+      <p className="text-white font-semibold text-sm mb-0.5 line-clamp-1">
+        Курс: {c.course.title}
+      </p>
+    );
+  }
+  if (c.type === "comment") {
+    return (
+      <p className="text-white font-semibold text-sm mb-0.5 line-clamp-1">
+        Коментар: «{c.review.comment || "без тексту"}» (⭐ {c.review.rating})
+      </p>
+    );
+  }
+  return (
+    <p className="text-white font-semibold text-sm mb-0.5 line-clamp-1">
+      Організація: {c.organization.full_name || c.organization.user.email}
+    </p>
+  );
+}
+
 const AdminComplaintsTable = ({ complaints, status, type }: Props) => {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -175,40 +222,13 @@ const AdminComplaintsTable = ({ complaints, status, type }: Props) => {
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
 <div className="flex items-center gap-2 mb-2">
-                    {c.type === "course" ? (
-                      <span className="flex items-center gap-1.5 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300">
-                        <BookOpen size={10} />
-                        Скарга на курс
-                      </span>
-                    ) : c.type === "comment" ? (
-                      <span className="flex items-center gap-1.5 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300">
-                        <MessageSquare size={10} />
-                        Скарга на коментар
-                      </span>
-                    ) : (
-                      <span className="flex items-center gap-1.5 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-300">
-                        <Building2 size={10} />
-                        Скарга на організацію
-                      </span>
-                    )}
+                    <ComplaintTypeBadge type={c.type} />
                     <span className="text-white/30 text-[10px]">
                       {new Date(c.createdAt).toLocaleDateString("uk-UA")}
                     </span>
                   </div>
 
-{c.type === "course" ? (
-                    <p className="text-white font-semibold text-sm mb-0.5 line-clamp-1">
-                      Курс: {c.course.title}
-                    </p>
-                  ) : c.type === "comment" ? (
-                    <p className="text-white font-semibold text-sm mb-0.5 line-clamp-1">
-                      Коментар: «{c.review.comment || "без тексту"}» (⭐ {c.review.rating})
-                    </p>
-                  ) : (
-                    <p className="text-white font-semibold text-sm mb-0.5 line-clamp-1">
-                      Організація: {c.organization.full_name || c.organization.user.email}
-                    </p>
-                  )}
+<ComplaintSubject c={c} />
 
                   {/* from */}
                   <p className="text-white/40 text-xs mb-3">

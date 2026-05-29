@@ -16,7 +16,7 @@ export const EnrollButton = ({ courseId, className }: EnrollButtonProps) => {
     try {
       setIsLoading(true);
 
-      const response = await axios.post(`/api/courses/${courseId}/enroll`);
+      await axios.post(`/api/courses/${courseId}/enroll`);
       toast.success("Ви успішно записались на курс!");
       globalThis.location.reload();
     } catch (err: any) {

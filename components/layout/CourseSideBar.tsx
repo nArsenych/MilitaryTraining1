@@ -73,7 +73,6 @@ const CourseSideBar = async ({ course, studentId }: CourseSideBarProps) => {
           <div className="mx-2">
             <EnrollButton
               courseId={course.id}
-              studentId={studentId}
               className="w-full flex items-center justify-center px-4 py-2 rounded-lg bg-[#FDAB04] hover:bg-[#ebac66] text-black text-sm font-semibold transition-colors"
             />
           </div>

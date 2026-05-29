@@ -87,7 +87,7 @@ const EdrpouVerification = ({ edrpou, setEdrpou, onVerified }: EdrpouVerificatio
             <p className="text-sm font-semibold text-red-700">
               Організація під санкціями!
             </p>
-            {result.sanctions.map((s) => (
+            {result?.sanctions.map((s) => (
               <p key={s.id} className="text-xs text-red-600 mt-1">
                 {s.name} — {s.sanctions_type}
               </p>

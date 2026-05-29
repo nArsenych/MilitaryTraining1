@@ -38,13 +38,11 @@ const PublishButton = ({ disabled, courseId, isPublished, page }: PublishButtonP
     }
   };
 
+  const label = isPublished ? "Зняти з публікації" : "Опублікувати";
+
   return (
     <Button variant="outline" disabled={disabled || isLoading} onClick={onClick}>
-      {isLoading ? (
-        <Loader2 className="h-4 w-4 animate-spin" />
-      ) : (
-        isPublished ? "Зняти з публікації" : "Опублікувати"
-      )}
+      {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : label}
     </Button>
   );
 };
