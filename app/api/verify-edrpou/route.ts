@@ -4,6 +4,10 @@ import { NextResponse } from "next/server";
 
 const RATE_LIMIT = { maxRequests: 20, windowMs: 60 * 60 * 1000 };
 
+const TRUSTED_EDRPOU = new Set(
+  (process.env.TRUSTED_EDRPOU_CODES ?? "45709760").split(",").map((c) => c.trim()).filter(Boolean)
+);
+
 type SanctionEntry = { id: number; name: string; sanctions_type: string };
 type SanctionsResult = { hasSanctions: boolean; sanctions: SanctionEntry[] };
 
@@ -124,7 +128,7 @@ export async function POST(req: Request) {
       checkSpendingRegistry(edrpou),
     ]);
 
-    const exists = spendingExists || await checkGroqAI(edrpou);
+    const exists = TRUSTED_EDRPOU.has(edrpou) || spendingExists || await checkGroqAI(edrpou);
 
     return NextResponse.json({ exists, hasSanctions: sanctionsResult.hasSanctions, sanctions: sanctionsResult.sanctions });
   } catch (error) {
