@@ -1,5 +1,8 @@
 import { getSession } from "@/lib/auth";
+import { checkRateLimit, rateLimitResetMinutes } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
+
+const RATE_LIMIT = { maxRequests: 20, windowMs: 60 * 60 * 1000 };
 
 type SanctionEntry = { id: number; name: string; sanctions_type: string };
 type SanctionsResult = { hasSanctions: boolean; sanctions: SanctionEntry[] };
@@ -102,6 +105,14 @@ export async function POST(req: Request) {
   try {
     const session = await getSession();
     if (!session) return new NextResponse("Unauthorized", { status: 401 });
+
+    const rl = await checkRateLimit(session.userId, "verify-edrpou", RATE_LIMIT);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: `Ліміт перевірок вичерпано. Спробуйте через ${rateLimitResetMinutes(rl.resetAt)} хв.` },
+        { status: 429 }
+      );
+    }
 
     const edrpou = String((await req.json()).edrpou).trim();
     if (!edrpou || !/^\d{8}$/.test(edrpou)) {

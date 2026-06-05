@@ -1,11 +1,22 @@
 import { getSession } from "@/lib/auth";
+import { checkRateLimit, rateLimitResetMinutes } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
+
+const RATE_LIMIT = { maxRequests: 5, windowMs: 60 * 60 * 1000 };
 
 export async function POST(req: Request) {
   try {
     const session = await getSession();
     if (!session) {
       return new NextResponse("Unauthorized", { status: 401 });
+    }
+
+    const rl = await checkRateLimit(session.userId, "generate-description", RATE_LIMIT);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: `Ліміт генерацій вичерпано. Спробуйте через ${rateLimitResetMinutes(rl.resetAt)} хв.` },
+        { status: 429 }
+      );
     }
 
     const { name, edrpou, address, phone, email, instagram, telegram, facebook } = await req.json();

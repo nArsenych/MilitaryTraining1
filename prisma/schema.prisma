@@ -228,6 +228,14 @@ model CourseRun {
   @@index([courseId])
 }
 
+model RateLimit {
+  key         String   @id
+  count       Int      @default(1)
+  windowStart DateTime
+
+  @@index([key])
+}
+
 model Category {
   id      String   @id @default(uuid())
   name    String   @unique
